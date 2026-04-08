@@ -43,14 +43,12 @@
       gap: 1vw;
     }
 
-    /* CASES PARFAITEMENT CARRÉES */
     .cell {
       aspect-ratio: 1 / 1;
       border: 2px solid #00ffcc;
       background: rgba(34, 34, 34, 0.85);
       backdrop-filter: blur(3px);
       cursor: pointer;
-      transition: 0.2s;
 
       display: flex;
       align-items: center;
@@ -58,17 +56,14 @@
       text-align: center;
 
       padding: 8px;
-
-      /* TEXTE UNIFORME */
-      font-size: clamp(11px, 1vw, 15px);
-      line-height: 1.2;
-      word-break: break-word;
       overflow: hidden;
+    }
 
-      /* LIMITE À 3 LIGNES */
-      display: -webkit-box;
-      -webkit-line-clamp: 3;
-      -webkit-box-orient: vertical;
+    .cell span {
+      display: block;
+      width: 100%;
+      word-break: break-word;
+      line-height: 1.1;
     }
 
     .cell.checked {
@@ -88,21 +83,13 @@
       border-radius: 8px;
     }
 
-    button:hover {
-      background: #00ddb0;
-    }
-
     .bingo-win {
       animation: glow 0.8s ease-in-out infinite alternate;
     }
 
     @keyframes glow {
-      from {
-        text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
-      }
-      to {
-        text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
-      }
+      from { text-shadow: 0 0 10px #00ffcc; }
+      to { text-shadow: 0 0 30px #00ffcc; }
     }
   </style>
 </head>
@@ -157,7 +144,11 @@ function generateGrid() {
   phrases.forEach((text) => {
     let div = document.createElement("div");
     div.className = "cell";
-    div.innerText = text;
+
+    let span = document.createElement("span");
+    span.innerText = text;
+
+    div.appendChild(span);
 
     div.onclick = () => {
       div.classList.toggle("checked");
@@ -167,7 +158,40 @@ function generateGrid() {
     grid.appendChild(div);
     cells.push(div);
   });
+
+  setTimeout(setUniformTextSize, 50);
 }
+
+function setUniformTextSize() {
+  let size = 10;
+  let fits = true;
+
+  do {
+    size++;
+    fits = true;
+
+    cells.forEach(cell => {
+      const span = cell.querySelector("span");
+      span.style.fontSize = size + "px";
+
+      if (
+        span.scrollHeight > cell.clientHeight ||
+        span.scrollWidth > cell.clientWidth
+      ) {
+        fits = false;
+      }
+    });
+
+  } while (fits && size < 100);
+
+  const finalSize = size - 1;
+
+  cells.forEach(cell => {
+    cell.querySelector("span").style.fontSize = finalSize + "px";
+  });
+}
+
+window.addEventListener("resize", setUniformTextSize);
 
 function checkBingo() {
   let win = false;
