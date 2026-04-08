@@ -2,17 +2,18 @@
 <html>
 <head>
   <title>Bingo Stream</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body {
+      margin: 0;
       font-family: Arial;
-      text-align: center;
       color: white;
+      overflow: hidden;
 
       background: url("dayflite_Illust_Full.png") no-repeat center center fixed;
       background-size: cover;
-      margin: 0;
-      padding: 0;
-      overflow: hidden;
     }
 
     body::before {
@@ -24,27 +25,35 @@
     }
 
     h1 {
+      text-align: center;
       color: #00ffcc;
       margin-top: 20px;
     }
 
-    .container {
+    /* WRAPPER SCALE */
+    #scale-wrapper {
       position: absolute;
-      bottom: 5%;
+      bottom: 20px;
       left: 50%;
-      transform: translateX(-50%);
-      width: 90vw;
-      max-width: 900px;
+      transform-origin: bottom center;
+    }
+
+    /* BASE DESIGN FIXE */
+    .container {
+      width: 800px;
+      text-align: center;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 1vw;
+      gap: 10px;
     }
 
     .cell {
-      aspect-ratio: 1 / 1;
+      width: 150px;
+      height: 150px;
+
       border: 2px solid #00ffcc;
       background: rgba(34, 34, 34, 0.85);
       backdrop-filter: blur(3px);
@@ -60,10 +69,9 @@
     }
 
     .cell span {
-      display: block;
       width: 100%;
-      word-break: break-word;
       line-height: 1.1;
+      word-break: break-word;
     }
 
     .cell.checked {
@@ -75,16 +83,15 @@
     button {
       margin-top: 10px;
       padding: 10px 20px;
-      border: none;
       background: #00ffcc;
-      color: black;
+      border: none;
+      border-radius: 8px;
       font-weight: bold;
       cursor: pointer;
-      border-radius: 8px;
     }
 
     .bingo-win {
-      animation: glow 0.8s ease-in-out infinite alternate;
+      animation: glow 0.8s infinite alternate;
     }
 
     @keyframes glow {
@@ -93,14 +100,17 @@
     }
   </style>
 </head>
+
 <body>
 
 <h1>Bingo du Chat 🎯</h1>
 
-<div class="container">
-  <h3 id="status"></h3>
-  <div class="grid" id="grid"></div>
-  <button onclick="resetGrid()">Reset</button>
+<div id="scale-wrapper">
+  <div class="container">
+    <h3 id="status"></h3>
+    <div class="grid" id="grid"></div>
+    <button onclick="resetGrid()">Reset</button>
+  </div>
 </div>
 
 <script>
@@ -141,7 +151,7 @@ function generateGrid() {
 
   phrases.sort(() => Math.random() - 0.5);
 
-  phrases.forEach((text) => {
+  phrases.forEach(text => {
     let div = document.createElement("div");
     div.className = "cell";
 
@@ -164,7 +174,7 @@ function generateGrid() {
 
 function setUniformTextSize() {
   let size = 10;
-  let fits = true;
+  let fits;
 
   do {
     size++;
@@ -191,7 +201,29 @@ function setUniformTextSize() {
   });
 }
 
-window.addEventListener("resize", setUniformTextSize);
+function adjustScale() {
+  const wrapper = document.getElementById("scale-wrapper");
+
+  const baseWidth = 800;
+  const baseHeight = 900;
+
+  const scaleX = window.innerWidth / baseWidth;
+  const scaleY = window.innerHeight / baseHeight;
+
+  const scale = Math.min(scaleX, scaleY);
+
+  wrapper.style.transform = `translateX(-50%) scale(${scale})`;
+}
+
+window.addEventListener("resize", () => {
+  adjustScale();
+  setUniformTextSize();
+});
+
+window.addEventListener("load", () => {
+  generateGrid();
+  adjustScale();
+});
 
 function checkBingo() {
   let win = false;
@@ -223,8 +255,6 @@ function resetGrid() {
   document.getElementById("status").innerText = "";
   document.getElementById("status").classList.remove("bingo-win");
 }
-
-generateGrid();
 </script>
 
 </body>
