@@ -2,7 +2,6 @@
 <html>
 <head>
   <title>Bingo Stream</title>
-
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <style>
@@ -10,7 +9,11 @@
       margin: 0;
       font-family: Arial;
       color: white;
-      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+      height: 100vh;
 
       background: url("dayflite_Illust_Full.png") no-repeat center center fixed;
       background-size: cover;
@@ -25,53 +28,38 @@
     }
 
     h1 {
-      text-align: center;
       color: #00ffcc;
-      margin-top: 20px;
+      margin: 10px;
     }
 
-    /* WRAPPER SCALE */
-    #scale-wrapper {
-      position: absolute;
-      bottom: 20px;
-      left: 50%;
-      transform-origin: bottom center;
-    }
-
-    /* BASE DESIGN FIXE */
     .container {
-      width: 800px;
+      width: min(95vw, 800px);
+      margin-bottom: 20px;
       text-align: center;
     }
 
     .grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
-      gap: 10px;
+      gap: 1vw;
     }
 
     .cell {
-      width: 150px;
-      height: 150px;
-
+      aspect-ratio: 1 / 1;
       border: 2px solid #00ffcc;
       background: rgba(34, 34, 34, 0.85);
-      backdrop-filter: blur(3px);
-      cursor: pointer;
-
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
-
-      padding: 8px;
+      padding: 6px;
       overflow: hidden;
     }
 
     .cell span {
       width: 100%;
-      line-height: 1.1;
       word-break: break-word;
+      line-height: 1.1;
     }
 
     .cell.checked {
@@ -105,12 +93,10 @@
 
 <h1>Bingo du Chat 🎯</h1>
 
-<div id="scale-wrapper">
-  <div class="container">
-    <h3 id="status"></h3>
-    <div class="grid" id="grid"></div>
-    <button onclick="resetGrid()">Reset</button>
-  </div>
+<div class="container">
+  <h3 id="status"></h3>
+  <div class="grid" id="grid"></div>
+  <button onclick="resetGrid()">Reset</button>
 </div>
 
 <script>
@@ -169,11 +155,11 @@ function generateGrid() {
     cells.push(div);
   });
 
-  setTimeout(setUniformTextSize, 50);
+  setUniformTextSize();
 }
 
 function setUniformTextSize() {
-  let size = 10;
+  let size = 8;
   let fits;
 
   do {
@@ -192,7 +178,7 @@ function setUniformTextSize() {
       }
     });
 
-  } while (fits && size < 100);
+  } while (fits && size < 60);
 
   const finalSize = size - 1;
 
@@ -201,29 +187,7 @@ function setUniformTextSize() {
   });
 }
 
-function adjustScale() {
-  const wrapper = document.getElementById("scale-wrapper");
-
-  const baseWidth = 800;
-  const baseHeight = 900;
-
-  const scaleX = window.innerWidth / baseWidth;
-  const scaleY = window.innerHeight / baseHeight;
-
-  const scale = Math.min(scaleX, scaleY);
-
-  wrapper.style.transform = `translateX(-50%) scale(${scale})`;
-}
-
-window.addEventListener("resize", () => {
-  adjustScale();
-  setUniformTextSize();
-});
-
-window.addEventListener("load", () => {
-  generateGrid();
-  adjustScale();
-});
+window.addEventListener("resize", setUniformTextSize);
 
 function checkBingo() {
   let win = false;
@@ -255,6 +219,8 @@ function resetGrid() {
   document.getElementById("status").innerText = "";
   document.getElementById("status").classList.remove("bingo-win");
 }
+
+generateGrid();
 </script>
 
 </body>
