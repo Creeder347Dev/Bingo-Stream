@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Bingo Stream</title>
+  <style>
+    body {
+      font-family: Arial;
+      text-align: center;
+      color: white;
+
+      background: url("dayflite_Illust_Full.png") no-repeat center center fixed;
+      background-size: cover;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: -1;
+    }
+
+    h1 {
+      color: #00ffcc;
+      margin-top: 20px;
+    }
+
+    .container {
+      position: absolute;
+      bottom: 5%;
+      left: 50%;
+      transform: translateX(-50%);
+      text-align: center;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(5, 120px);
+      gap: 10px;
+      justify-content: center;
+      margin-top: 10px;
+    }
+
+    .cell {
+      border: 2px solid #00ffcc;
+      padding: 15px;
+      cursor: pointer;
+      background: rgba(34, 34, 34, 0.85);
+      transition: 0.2s;
+      backdrop-filter: blur(3px);
+    }
+
+    .cell.checked {
+      background: #00ffcc;
+      color: black;
+      font-weight: bold;
+    }
+
+    /* BOUTON RESET */
+    button {
+      margin-top: 10px;
+      padding: 10px 20px;
+      border: none;
+      background: #00ffcc;
+      color: black;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+
+    button:hover {
+      background: #00ddb0;
+    }
+
+    /* ANIMATION BINGO */
+    .bingo-win {
+      animation: glow 0.8s ease-in-out infinite alternate;
+    }
+
+    @keyframes glow {
+      from {
+        text-shadow: 0 0 10px #00ffcc, 0 0 20px #00ffcc;
+      }
+      to {
+        text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<h1>Bingo du Chat 🎯</h1>
+
+<div class="container">
+  <h3 id="status"></h3>
+  <div class="grid" id="grid"></div>
+  <button onclick="resetGrid()">Reset</button>
+</div>
+
+<script>
+let phrases = [
+  "C’est quoi ton setup ?",
+  "Vous faites quoi ce soir ?",
+  "C'est qui le grand ? (Rito)",
+  "C'est quoi l'animal avec vous ? (Koubai)",
+  "Rire Meli",
+  "Tu stream quand ?",
+  "C’est quoi ta config ?",
+  "Comment on devient Vtuber ?",
+  "C’est quoi la musique ?",
+  "C'est quoi le jeux ?",
+  "Vous êtes en couple?",
+  "C'est quoi Poopoush ?",
+  "Vous êtes trois ?",
+  "Comment ont met la musique ?",
+  "Tu fais des collabs ?",
+  "Tu regarde quel anime ?",
+  "La POUTRE !",
+  "Vous jouez à quoi ?",
+  "TITREUX !",
+  "Pourquoi ça lag ?",
+  "Hazbin Hôtel/The amazing digital circus ?",
+  "C’est quoi ton modèle ?",
+  "C'est quoi ton logiciel pour le Vtubing ?",
+  "C’est quoi votre Discord ?",
+  "Pourquoi il-y-a pas de titre?"
+];
+
+const grid = document.getElementById("grid");
+let cells = [];
+
+function generateGrid() {
+  grid.innerHTML = "";
+  cells = [];
+
+  phrases.sort(() => Math.random() - 0.5);
+
+  phrases.forEach((text) => {
+    let div = document.createElement("div");
+    div.className = "cell";
+    div.innerText = text;
+
+    div.onclick = () => {
+      div.classList.toggle("checked");
+      checkBingo();
+    };
+
+    grid.appendChild(div);
+    cells.push(div);
+  });
+}
+
+function checkBingo() {
+  let win = false;
+
+  // lignes
+  for (let i = 0; i < 5; i++) {
+    if (cells.slice(i*5, i*5+5).every(c => c.classList.contains("checked"))) {
+      win = true;
+    }
+  }
+
+  // colonnes
+  for (let i = 0; i < 5; i++) {
+    if ([0,1,2,3,4].every(j => cells[i + j*5].classList.contains("checked"))) {
+      win = true;
+    }
+  }
+
+  // diagonales
+  if ([0,6,12,18,24].every(i => cells[i].classList.contains("checked"))) win = true;
+  if ([4,8,12,16,20].every(i => cells[i].classList.contains("checked"))) win = true;
+
+  const status = document.getElementById("status");
+
+  if (win) {
+    status.innerText = "🔥 BINGO !!! 🔥";
+    status.classList.add("bingo-win");
+  } else {
+    status.innerText = "";
+    status.classList.remove("bingo-win");
+  }
+}
+
+function resetGrid() {
+  generateGrid();
+  document.getElementById("status").innerText = "";
+  document.getElementById("status").classList.remove("bingo-win");
+}
+
+// initialisation
+generateGrid();
+</script>
+
+</body>
+</html>
