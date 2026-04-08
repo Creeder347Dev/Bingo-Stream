@@ -34,23 +34,34 @@
       left: 50%;
       transform: translateX(-50%);
       text-align: center;
+      width: 90vw;
+      max-width: 900px;
     }
 
+    /* GRID RESPONSIVE */
     .grid {
       display: grid;
-      grid-template-columns: repeat(5, 120px);
-      gap: 10px;
-      justify-content: center;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1vw;
       margin-top: 10px;
     }
 
     .cell {
       border: 2px solid #00ffcc;
-      padding: 15px;
+      padding: 1vw;
       cursor: pointer;
       background: rgba(34, 34, 34, 0.85);
       transition: 0.2s;
       backdrop-filter: blur(3px);
+
+      /* TEXTE RESPONSIVE */
+      font-size: clamp(12px, 1.2vw, 18px);
+      min-height: 60px;
+
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
     }
 
     .cell.checked {
@@ -59,7 +70,6 @@
       font-weight: bold;
     }
 
-    /* BOUTON RESET */
     button {
       margin-top: 10px;
       padding: 10px 20px;
@@ -156,21 +166,14 @@ function generateGrid() {
 function checkBingo() {
   let win = false;
 
-  // lignes
   for (let i = 0; i < 5; i++) {
-    if (cells.slice(i*5, i*5+5).every(c => c.classList.contains("checked"))) {
-      win = true;
-    }
+    if (cells.slice(i*5, i*5+5).every(c => c.classList.contains("checked"))) win = true;
   }
 
-  // colonnes
   for (let i = 0; i < 5; i++) {
-    if ([0,1,2,3,4].every(j => cells[i + j*5].classList.contains("checked"))) {
-      win = true;
-    }
+    if ([0,1,2,3,4].every(j => cells[i + j*5].classList.contains("checked"))) win = true;
   }
 
-  // diagonales
   if ([0,6,12,18,24].every(i => cells[i].classList.contains("checked"))) win = true;
   if ([4,8,12,16,20].every(i => cells[i].classList.contains("checked"))) win = true;
 
@@ -191,7 +194,6 @@ function resetGrid() {
   document.getElementById("status").classList.remove("bingo-win");
 }
 
-// initialisation
 generateGrid();
 </script>
 
