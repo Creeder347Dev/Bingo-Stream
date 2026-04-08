@@ -33,35 +33,42 @@
       bottom: 5%;
       left: 50%;
       transform: translateX(-50%);
-      text-align: center;
       width: 90vw;
       max-width: 900px;
     }
 
-    /* GRID RESPONSIVE */
     .grid {
       display: grid;
       grid-template-columns: repeat(5, 1fr);
       gap: 1vw;
-      margin-top: 10px;
     }
 
+    /* CASES PARFAITEMENT CARRÉES */
     .cell {
+      aspect-ratio: 1 / 1;
       border: 2px solid #00ffcc;
-      padding: 1vw;
-      cursor: pointer;
       background: rgba(34, 34, 34, 0.85);
-      transition: 0.2s;
       backdrop-filter: blur(3px);
-
-      /* TEXTE RESPONSIVE */
-      font-size: clamp(12px, 1.2vw, 18px);
-      min-height: 60px;
+      cursor: pointer;
+      transition: 0.2s;
 
       display: flex;
       align-items: center;
       justify-content: center;
       text-align: center;
+
+      padding: 8px;
+
+      /* TEXTE UNIFORME */
+      font-size: clamp(11px, 1vw, 15px);
+      line-height: 1.2;
+      word-break: break-word;
+      overflow: hidden;
+
+      /* LIMITE À 3 LIGNES */
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
     }
 
     .cell.checked {
@@ -85,7 +92,6 @@
       background: #00ddb0;
     }
 
-    /* ANIMATION BINGO */
     .bingo-win {
       animation: glow 0.8s ease-in-out infinite alternate;
     }
