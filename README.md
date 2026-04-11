@@ -37,13 +37,14 @@ Un bingo interactif, dynamique et personnalisable pour stream (Twitch, Vtuber, c
 
 ## 📁 Structure du projet
 
+```
 Bingo-Stream/
 ├── index.html
 ├── style.css
 ├── script.js
 ├── config.json
 └── preview.gif
-
+```
 ---
 
 ## ⚙️ Configuration
