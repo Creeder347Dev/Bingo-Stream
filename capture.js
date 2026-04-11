@@ -22,8 +22,14 @@ async function captureGrid() {
   try {
     const canvas = await html2canvas(element, {
       backgroundColor: null,
-      scale: 2
+      scale: 2,
+      logging: false,
+      useCORS: true
     });
+
+    // 👇 IMPORTANT : empêcher affichage
+    canvas.style.display = "none";
+    document.body.appendChild(canvas);
 
     canvas.toBlob(async (blob) => {
       if (!blob) {
@@ -43,6 +49,9 @@ async function captureGrid() {
         console.error("Clipboard error:", err);
         showToast("❌ Copie non supportée");
       }
+
+      // 👇 SUPPRESSION DU CANVAS
+      canvas.remove();
     });
 
   } catch (err) {
