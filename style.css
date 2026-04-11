@@ -116,3 +116,29 @@ button:hover {
   from { text-shadow: 0 0 10px #00ffcc; }
   to { text-shadow: 0 0 30px #00ffcc; }
 }
+
+
+/* ===== TOAST ===== */
+#toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 8px;
+
+  opacity: 0;
+  pointer-events: none;
+
+  transition: 0.3s ease;
+  font-size: 14px;
+}
+
+/* visible */
+#toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
