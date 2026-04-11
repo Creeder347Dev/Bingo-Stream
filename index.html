@@ -3,8 +3,13 @@
 <head>
   <title>Bingo Stream</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <link rel="stylesheet" href="style.css">
+
+  <!-- html2canvas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
+
 <body>
 
 <div class="main">
@@ -12,11 +17,23 @@
 
   <div class="container">
     <h3 id="status"></h3>
-    <div class="grid" id="grid"></div>
-    <button onclick="resetGrid()">Reset</button>
+
+    <!-- 👇 CE QUI SERA CAPTURÉ -->
+    <div id="capture-area">
+      <div class="grid" id="grid"></div>
+    </div>
+
+    <!-- 👇 PAS DANS LA CAPTURE -->
+    <div class="controls">
+      <button onclick="resetGrid()">Reset</button>
+      <button onclick="captureGrid()">📋 Copier</button>
+    </div>
+
   </div>
 </div>
 
 <script src="script.js"></script>
+<script src="capture.js"></script>
+
 </body>
 </html>
