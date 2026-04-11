@@ -73,16 +73,17 @@ function generateGrid() {
 // TEXTE UNIFORME (IMPORTANT)
 // ===============================
 function setUniformTextSize() {
-  let size = 8;
-  let fits;
+  let minSize = 8;
+  let maxSize = 200; // beaucoup plus haut
+  let bestSize = minSize;
 
-  do {
-    size++;
-    fits = true;
+  while (minSize <= maxSize) {
+    let mid = Math.floor((minSize + maxSize) / 2);
+    let fits = true;
 
     cells.forEach(cell => {
       const span = cell.querySelector("span");
-      span.style.fontSize = size + "px";
+      span.style.fontSize = mid + "px";
 
       if (
         span.scrollHeight > cell.clientHeight ||
@@ -92,15 +93,19 @@ function setUniformTextSize() {
       }
     });
 
-  } while (fits && size < 40);
+    if (fits) {
+      bestSize = mid;
+      minSize = mid + 1;
+    } else {
+      maxSize = mid - 1;
+    }
+  }
 
-  const finalSize = size - 1;
-
+  // Applique la meilleure taille trouvée
   cells.forEach(cell => {
-    cell.querySelector("span").style.fontSize = finalSize + "px";
+    cell.querySelector("span").style.fontSize = bestSize + "px";
   });
 }
-
 
 // Recalcul au resize
 window.addEventListener("resize", setUniformTextSize);
