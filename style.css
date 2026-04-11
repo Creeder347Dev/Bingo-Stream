@@ -1,11 +1,14 @@
+/* ===== BACKGROUND ===== */
 body {
   margin: 0;
   font-family: Arial;
   color: white;
+
   background: url("dayflite_Illust_Full.png") no-repeat center center fixed;
   background-size: cover;
 }
 
+/* overlay sombre */
 body::before {
   content: "";
   position: fixed;
@@ -14,37 +17,92 @@ body::before {
   z-index: -1;
 }
 
+/* ===== LAYOUT GLOBAL ===== */
 .main {
   height: 100vh;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+
   padding: 5vh 0;
+  box-sizing: border-box;
   text-align: center;
 }
 
+h1 {
+  color: #00ffcc;
+  margin: 0;
+}
+
+/* ===== CONTAINER BINGO ===== */
 .container {
   width: min(95vw, 800px);
   max-height: 75vh;
   margin: 0 auto;
 }
 
+/* ===== GRID ===== */
 .grid {
   display: grid;
+  grid-template-columns: repeat(5, 1fr); /* sera override en JS si besoin */
   gap: 1vh;
+  margin-top: 10px;
 }
 
+/* ===== CASES ===== */
 .cell {
-  aspect-ratio: 1/1;
+  aspect-ratio: 1 / 1;
+  max-height: calc(75vh / 5 - 10px);
+
   border: 2px solid #00ffcc;
-  background: rgba(34,34,34,0.85);
+  background: rgba(34, 34, 34, 0.85);
+  backdrop-filter: blur(3px);
+
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center;
+
   padding: 6px;
+  overflow: hidden;
+  cursor: pointer;
 }
 
+/* TEXTE */
+.cell span {
+  width: 100%;
+  word-break: break-word;
+  line-height: 1.1;
+}
+
+/* CASE COCHÉE */
 .cell.checked {
   background: #00ffcc;
   color: black;
+  font-weight: bold;
+}
+
+/* ===== BOUTON ===== */
+button {
+  margin-top: 10px;
+  padding: 10px 20px;
+  background: #00ffcc;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00ddb0;
+}
+
+/* ===== ANIMATION BINGO ===== */
+.bingo-win {
+  animation: glow 0.8s infinite alternate;
+}
+
+@keyframes glow {
+  from { text-shadow: 0 0 10px #00ffcc; }
+  to { text-shadow: 0 0 30px #00ffcc; }
 }
