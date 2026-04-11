@@ -17,7 +17,8 @@ Un bingo interactif, dynamique et personnalisable pour stream (Twitch, Vtuber, c
 
 ## 🎥 Preview
 
-![Bingo Preview](./preview.gif)
+<img width="2556" height="1316" alt="image" src="https://github.com/user-attachments/assets/f4cb39e5-11b4-4205-9466-f3a4bd4d6766" />
+
 
 ---
 
