@@ -3,8 +3,9 @@
 // ===============================
 function showToast(message) {
   const toast = document.getElementById("toast");
-  toast.innerText = message;
+  if (!toast) return;
 
+  toast.innerText = message;
   toast.classList.add("show");
 
   setTimeout(() => {
@@ -14,45 +15,53 @@ function showToast(message) {
 
 
 // ===============================
-// CAPTURE DE LA GRILLE UNIQUEMENT
+// CAPTURE DE LA GRILLE + COPIE
 // ===============================
 async function captureGrid() {
   const element = document.getElementById("capture-area");
+
+  if (!element) {
+    console.error("Element capture-area introuvable");
+    showToast("❌ Erreur interne");
+    return;
+  }
 
   try {
     const canvas = await html2canvas(element, {
       backgroundColor: null,
       scale: 2,
-      logging: false,
-      useCORS: true
+      useCORS: true,
+      logging: false
     });
 
-    // 👇 IMPORTANT : empêcher affichage
-    canvas.style.display = "none";
-    document.body.appendChild(canvas);
+    // conversion blob (fiable)
+    const blob = await new Promise(resolve => canvas.toBlob(resolve));
 
-    canvas.toBlob(async (blob) => {
-      if (!blob) {
-        showToast("❌ Erreur génération image");
-        return;
-      }
+    if (!blob) {
+      showToast("❌ Erreur génération image");
+      return;
+    }
 
-      try {
-        await navigator.clipboard.write([
-          new ClipboardItem({
-            "image/png": blob
-          })
-        ]);
+    try {
+      // tentative copie presse-papier
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          "image/png": blob
+        })
+      ]);
 
-        showToast("✅ Grille copiée !");
-      } catch (err) {
-        console.error("Clipboard error:", err);
-        showToast("❌ Copie non supportée");
-      }
+      showToast("✅ Grille copiée !");
+    } catch (err) {
+      console.error("Clipboard error:", err);
 
-      // 👇 SUPPRESSION DU CANVAS
-      canvas.remove();
-    });
+      // fallback téléchargement
+      const link = document.createElement("a");
+      link.download = "bingo.png";
+      link.href = URL.createObjectURL(blob);
+      link.click();
+
+      showToast("⚠️ Téléchargement à la place");
+    }
 
   } catch (err) {
     console.error("Capture error:", err);
