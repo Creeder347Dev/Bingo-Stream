@@ -60,7 +60,7 @@ Dans config.json :
 ---
 
 ### Ajouter des phrases
-
+```
 {
 "phrases": [
 "C’est quoi ton setup ?",
@@ -68,7 +68,7 @@ Dans config.json :
 "Pourquoi ça lag ?"
 ]
 }
-
+```
 ---
 
 ## ▶️ Lancer en local
