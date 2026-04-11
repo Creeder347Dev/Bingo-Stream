@@ -1,4 +1,19 @@
 // ===============================
+// TOAST (POPUP BAS DE PAGE)
+// ===============================
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
+}
+
+
+// ===============================
 // CAPTURE DE LA GRILLE UNIQUEMENT
 // ===============================
 async function captureGrid() {
@@ -11,6 +26,11 @@ async function captureGrid() {
     });
 
     canvas.toBlob(async (blob) => {
+      if (!blob) {
+        showToast("❌ Erreur génération image");
+        return;
+      }
+
       try {
         await navigator.clipboard.write([
           new ClipboardItem({
@@ -18,14 +38,15 @@ async function captureGrid() {
           })
         ]);
 
-        console.log("✅ Copié !");
+        showToast("✅ Grille copiée !");
       } catch (err) {
         console.error("Clipboard error:", err);
-        alert("❌ Copie non supportée");
+        showToast("❌ Copie non supportée");
       }
     });
 
   } catch (err) {
     console.error("Capture error:", err);
+    showToast("❌ Erreur capture");
   }
 }
