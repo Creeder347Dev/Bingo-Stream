@@ -1,5 +1,3 @@
-Voici une version **100% copiable sans aucun bloc spécial ni formatage parasite** :
-
 ---
 
 # 🎯 Bingo Stream
