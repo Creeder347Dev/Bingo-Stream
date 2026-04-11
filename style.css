@@ -1,0 +1,50 @@
+body {
+  margin: 0;
+  font-family: Arial;
+  color: white;
+  background: url("dayflite_Illust_Full.png") no-repeat center center fixed;
+  background-size: cover;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: -1;
+}
+
+.main {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 5vh 0;
+  text-align: center;
+}
+
+.container {
+  width: min(95vw, 800px);
+  max-height: 75vh;
+  margin: 0 auto;
+}
+
+.grid {
+  display: grid;
+  gap: 1vh;
+}
+
+.cell {
+  aspect-ratio: 1/1;
+  border: 2px solid #00ffcc;
+  background: rgba(34,34,34,0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+}
+
+.cell.checked {
+  background: #00ffcc;
+  color: black;
+}
