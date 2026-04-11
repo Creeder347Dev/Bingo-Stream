@@ -1,13 +1,77 @@
+// ===============================
+// RÉFÉRENCES DOM
+// ===============================
 const grid = document.getElementById("grid");
 const statusEl = document.getElementById("status");
 
 let cells = [];
 let config = null;
 
+
+// ===============================
+// CHARGEMENT CONFIG JSON
+// ===============================
 async function loadConfig() {
-  const response = await fetch("config.json");
-  config = await response.json();
+  try {
+    const response = await fetch("./config.json?v=" + Date.now());
+    config = await response.json();
+
+    console.log("CONFIG LOADED:", config);
+  } catch (e) {
+    console.error("Erreur chargement config:", e);
+  }
 }
+
+
+// ===============================
+// GÉNÉRATION DE LA GRILLE
+// ===============================
+function generateGrid() {
+  grid.innerHTML = "";
+  cells = [];
+
+  const size = config.gridSize;
+  const total = size * size;
+
+  // Si pas assez de phrases → duplication
+  let pool = [...config.phrases];
+  while (pool.length < total) {
+    pool = pool.concat(config.phrases);
+  }
+
+  // Mélange + sélection
+  const shuffled = pool.sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, total);
+
+  // Applique la taille dynamique de grille
+  grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+  selected.forEach(text => {
+    const div = document.createElement("div");
+    div.className = "cell";
+
+    const span = document.createElement("span");
+    span.innerText = text;
+
+    div.appendChild(span);
+
+    // Interaction clic
+    div.onclick = () => {
+      div.classList.toggle("checked");
+      checkBingo(size);
+    };
+
+    grid.appendChild(div);
+    cells.push(div);
+  });
+
+  setUniformTextSize();
+}
+
+
+// ===============================
+// TEXTE UNIFORME (IMPORTANT)
+// ===============================
 function setUniformTextSize() {
   let size = 8;
   let fits;
@@ -36,41 +100,64 @@ function setUniformTextSize() {
     cell.querySelector("span").style.fontSize = finalSize + "px";
   });
 }
-function generateGrid() {
-  grid.innerHTML = "";
-  cells = [];
 
-  const size = config.gridSize;
-  const total = size * size;
 
-  const shuffled = [...config.phrases].sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, total);
+// Recalcul au resize
+window.addEventListener("resize", setUniformTextSize);
 
-  grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
-  selected.forEach(text => {
-    const div = document.createElement("div");
-    div.className = "cell";
+// ===============================
+// VÉRIFICATION BINGO
+// ===============================
+function checkBingo(size) {
+  let win = false;
 
-    const span = document.createElement("span");
-    span.innerText = text;
+  // Lignes
+  for (let i = 0; i < size; i++) {
+    if (cells.slice(i * size, i * size + size).every(c => c.classList.contains("checked"))) {
+      win = true;
+    }
+  }
 
-    div.appendChild(span);
+  // Colonnes
+  for (let i = 0; i < size; i++) {
+    if (Array.from({ length: size }, (_, j) => cells[i + j * size]).every(c => c.classList.contains("checked"))) {
+      win = true;
+    }
+  }
 
-    div.onclick = () => {
-      div.classList.toggle("checked");
-    };
+  // Diagonales
+  if (Array.from({ length: size }, (_, i) => cells[i * (size + 1)]).every(c => c.classList.contains("checked"))) {
+    win = true;
+  }
 
-    grid.appendChild(div);
-    cells.push(div);
-  });
+  if (Array.from({ length: size }, (_, i) => cells[(i + 1) * (size - 1)]).every(c => c.classList.contains("checked"))) {
+    win = true;
+  }
+
+  if (win) {
+    statusEl.innerText = "🔥 BINGO !!! 🔥";
+    statusEl.classList.add("bingo-win");
+  } else {
+    statusEl.innerText = "";
+    statusEl.classList.remove("bingo-win");
+  }
 }
 
+
+// ===============================
+// RESET
+// ===============================
 function resetGrid() {
   generateGrid();
   statusEl.innerText = "";
+  statusEl.classList.remove("bingo-win");
 }
 
+
+// ===============================
+// INIT
+// ===============================
 (async function init() {
   await loadConfig();
   generateGrid();
