@@ -102,6 +102,16 @@ button:hover {
   animation: glow 0.8s infinite alternate;
 }
 
+/* ===== TEXTE DANS LES CASES ===== */
+.cell span {
+  width: 100%;
+  word-break: break-word;
+  line-height: 1.1;
+
+  /* BASE (fallback si JS ne passe pas) */
+  font-size: 12px;
+}
+
 @keyframes glow {
   from { text-shadow: 0 0 10px #00ffcc; }
   to { text-shadow: 0 0 30px #00ffcc; }
