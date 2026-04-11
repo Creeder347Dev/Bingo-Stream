@@ -8,7 +8,34 @@ async function loadConfig() {
   const response = await fetch("config.json");
   config = await response.json();
 }
+function setUniformTextSize() {
+  let size = 8;
+  let fits;
 
+  do {
+    size++;
+    fits = true;
+
+    cells.forEach(cell => {
+      const span = cell.querySelector("span");
+      span.style.fontSize = size + "px";
+
+      if (
+        span.scrollHeight > cell.clientHeight ||
+        span.scrollWidth > cell.clientWidth
+      ) {
+        fits = false;
+      }
+    });
+
+  } while (fits && size < 40);
+
+  const finalSize = size - 1;
+
+  cells.forEach(cell => {
+    cell.querySelector("span").style.fontSize = finalSize + "px";
+  });
+}
 function generateGrid() {
   grid.innerHTML = "";
   cells = [];
