@@ -1,0 +1,8 @@
+Liste des futures updates a prevoir:
+
+  -Ajout d'une page admin pour gerer le fichier config
+  -Ajout de case obligatoire pour le bingo (evennement special)
+  -Voir la liste des case existentes et possibilité du supprimé et d'ajouter des cases
+  -Forcer le rafraichissement de la page
+  -Bloquer la generation des grilles pendants le stream
+  -faire un bouton de rafraichissement et de reset des grilles sur la page admin)
