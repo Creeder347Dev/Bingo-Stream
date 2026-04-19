@@ -1,37 +1,9 @@
 {
-  "gridSize": 5,
-  "phrases": [
-  "C’est quoi ton setup ?",
-  "Vous faites quoi ce soir ?",
-  "C'est qui le grand ? (Rito)",
-  "C'est quoi l'animal avec vous ? (Koubai)",
-  "Rire Meli",
-  "Tu stream quand ?",
-  "C’est quoi ta config ?",
-  "Comment on devient Vtuber ?",
-  "C’est quoi la musique ?",
-  "Vous êtes en couple?",
-  "C'est quoi Poopoush ?",
-  "Vous êtes trois ?",
-  "Comment ont met la musique ?",
-  "Tu fais des collabs ?",
-  "Tu regarde quel anime ?",
-  "La POUTRE !",
-  "Vous jouez à quoi ?",
-  "TITREUX !",
-  "Pourquoi ça lag ?",
-  "Hazbin Hôtel/The amazing digital circus ?",
-  "C’est quoi ton modèle ?",
-  "C'est quoi ton logiciel pour le Vtubing ?",
-  "C’est quoi votre Discord ?",
-  "Pourquoi il-y-a pas de titre?",
-  "Tu compte jouer a FNAF?",
-  "Eh beh",
-  "C'est ta vrai voix?",
-  "Discussion furry",
-  "Pourquoi vous êtes de travers ?",
-  "le throne est vide",
-  "Est ce que kouabi est furry",
-  "Attention je sawte"
-  ]
+"phrases":[
+"Test 1","Test 2","Test 3","Test 4","Test 5",
+"Test 6","Test 7","Test 8","Test 9","Test 10",
+"Test 11","Test 12","Test 13","Test 14","Test 15",
+"Test 16","Test 17","Test 18","Test 19","Test 20",
+"Test 21","Test 22","Test 23","Test 24","Test 25"
+]
 }
