@@ -30,7 +30,7 @@ body::before {
 
 /* GRID */
 .container {
-  width: min(95vw, 1000px);
+  width: min(90vw, 850px);
 }
 
 .grid {
@@ -50,7 +50,7 @@ body::before {
   align-items: center;
   justify-content: center;
 
-  padding: 10px;
+  padding: 8px;
   cursor: pointer;
   transition: 0.2s;
 }
@@ -63,14 +63,23 @@ body::before {
 .cell span {
   text-align: center;
   word-break: break-word;
-  font-size: clamp(12px, 1.7vw, 18px);
+  line-height: 1.25;
+  font-size: clamp(14px, 2.2vw, 22px);
 }
 
+/* CHECKED */
 .cell.checked {
   background: #00ffcc;
   color: black;
   font-weight: bold;
   box-shadow: 0 0 15px #00ffcc;
+}
+
+/* WIN */
+.cell.win {
+  background: linear-gradient(135deg, #00ffcc, #00aaff);
+  color: black;
+  box-shadow: 0 0 20px #00ffcc;
 }
 
 /* BUTTONS */
@@ -108,4 +117,30 @@ button:hover {
 #toast.show {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
+}
+
+/* BINGO MESSAGE */
+#bingoMessage {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0);
+
+  font-size: 60px;
+  font-weight: bold;
+  color: #00ffcc;
+
+  text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
+
+  opacity: 0;
+}
+
+#bingoMessage.show {
+  animation: bingoAnim 1.2s ease forwards;
+}
+
+@keyframes bingoAnim {
+  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
