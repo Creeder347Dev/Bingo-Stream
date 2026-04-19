@@ -4,136 +4,46 @@ body{
   font-family:Arial;
 }
 
-.card{
-  max-width:800px;
-  margin:10vh auto;
-  background:#1a1a1a;
-  padding:20px;
-  border-radius:10px;
+/* LOGIN PAGE */
+.login-container {
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-/* STRUCTURE */
-.header-row,
-.row{
-  display:grid;
-  grid-template-columns:minmax(0,1fr) 90px 70px;
-  align-items:center;
-  gap:10px;
+.login-card {
+  background: #1a1a1a;
+  padding: 30px;
+  border-radius: 12px;
+  width: 300px;
+  text-align: center;
 }
 
-/* HEADER */
-.header-row{
-  margin-bottom:10px;
-  padding:10px;
-  background:#222;
-  border-radius:6px;
-  font-weight:bold;
+.login-card h1 {
+  margin-bottom: 20px;
 }
 
-.header-row div{
-  display:flex;
-  align-items:center;
-  justify-content:center;
+.login-card input {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: none;
+  background: #111;
+  color: white;
 }
 
-.header-row div:first-child{
-  justify-content:flex-start;
+.login-card button {
+  width: 100%;
+  padding: 10px;
+  background: #00ffcc;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
 }
 
-/* ROW */
-.row{
-  padding:10px;
-  border-radius:6px;
-  background:#1a1a1a;
-  border-bottom:1px solid #2a2a2a;
-}
-
-.row:hover{
-  background:#222;
-}
-
-/* TEXTAREA */
-textarea{
-  width:100%;
-  min-height:40px;
-  resize:vertical;
-  background:#111;
-  color:white;
-  border:none;
-  border-radius:6px;
-  padding:8px;
-  box-sizing:border-box;
-}
-
-/* ALIGN */
-.row .switch{
-  justify-self:center;
-}
-
-.row button{
-  justify-self:center;
-  width:40px;
-}
-
-/* SLIDER */
-.switch{
-  position:relative;
-  display:inline-block;
-  width:50px;
-  height:24px;
-}
-
-.switch input{
-  opacity:0;
-  width:0;
-  height:0;
-}
-
-.slider{
-  position:absolute;
-  inset:0;
-  background:#444;
-  border-radius:24px;
-  cursor:pointer;
-  transition:.3s;
-}
-
-.slider:before{
-  content:"";
-  position:absolute;
-  height:18px;
-  width:18px;
-  left:3px;
-  bottom:3px;
-  background:white;
-  border-radius:50%;
-  transition:.3s;
-}
-
-.switch input:checked + .slider{
-  background:#00ffcc;
-}
-
-.switch input:checked + .slider:before{
-  transform:translateX(26px);
-}
-
-/* BUTTON */
-button{
-  background:#ff4d4d;
-  border:none;
-  border-radius:6px;
-  color:white;
-  cursor:pointer;
-  padding:6px 10px;
-}
-
-button:hover{
-  background:#cc0000;
-}
-
-.actions{
-  display:flex;
-  justify-content:space-between;
-  margin-top:15px;
+.login-card button:hover {
+  background: #00ddb0;
 }
