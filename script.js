@@ -71,4 +71,30 @@ function resetGrid() {
   generateGrid();
 }
 
+function copyGrid() {
+  const cells = document.querySelectorAll(".cell span");
+
+  let text = "🎯 Bingo du chat 🎯\n\n";
+
+  cells.forEach((cell, i) => {
+    const checked = cell.parentElement.classList.contains("checked") ? "✅" : "⬜";
+    text += `${checked} ${cell.innerText}\n`;
+
+    if ((i + 1) % 5 === 0) text += "\n";
+  });
+
+  navigator.clipboard.writeText(text);
+  showToast("Grille copiée !");
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  toast.innerText = message;
+  toast.classList.add("show");
+
+  setTimeout(() => {
+    toast.classList.remove("show");
+  }, 2000);
+}
+
 loadConfig();

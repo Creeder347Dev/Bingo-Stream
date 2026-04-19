@@ -14,8 +14,13 @@
     <div id="grid" class="grid"></div>
   </div>
 
-  <button onclick="resetGrid()">🔄 Nouvelle grille</button>
+  <div class="actions">
+    <button onclick="resetGrid()">🔄 Nouvelle grille</button>
+    <button onclick="copyGrid()">📋 Copier la grille</button>
+  </div>
 </div>
+
+<div id="toast">Copié !</div>
 
 <script src="script.js"></script>
 </body>
