@@ -3,19 +3,16 @@ let config = { phrases: [] };
 
 const GRID_DURATION = 24 * 60 * 60 * 1000;
 
-// shuffle
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
-// load config
 async function loadConfig() {
   const res = await fetch("/api/config");
   config = await res.json();
   generateGrid();
 }
 
-// generate grid
 function generateGrid() {
   grid.innerHTML = "";
 
@@ -61,19 +58,21 @@ function generateGrid() {
       }
 
       localStorage.setItem("bingoState", JSON.stringify(state));
+
+      checkWin();
     };
 
     grid.appendChild(div);
   });
+
+  checkWin();
 }
 
-// reset
 function resetGrid() {
   localStorage.removeItem("bingoState");
   generateGrid();
 }
 
-// copy
 function copyGrid() {
   const cells = document.querySelectorAll(".cell span");
 
@@ -89,15 +88,86 @@ function copyGrid() {
   showToast("Grille copiée !");
 }
 
-// toast
 function showToast(message) {
   const toast = document.getElementById("toast");
   toast.innerText = message;
   toast.classList.add("show");
 
-  setTimeout(() => {
-    toast.classList.remove("show");
-  }, 2000);
+  setTimeout(() => toast.classList.remove("show"), 2000);
+}
+
+function showBingo() {
+  const el = document.getElementById("bingoMessage");
+  el.classList.add("show");
+  setTimeout(() => el.classList.remove("show"), 2000);
+}
+
+function checkWin() {
+  const cells = document.querySelectorAll(".cell");
+  const size = 5;
+
+  cells.forEach(c => c.classList.remove("win"));
+
+  let hasWin = false;
+
+  // lignes
+  for (let r = 0; r < size; r++) {
+    let win = true;
+    let row = [];
+
+    for (let c = 0; c < size; c++) {
+      const i = r * size + c;
+      row.push(cells[i]);
+      if (!cells[i].classList.contains("checked")) win = false;
+    }
+
+    if (win) {
+      hasWin = true;
+      row.forEach(cell => cell.classList.add("win"));
+    }
+  }
+
+  // colonnes
+  for (let c = 0; c < size; c++) {
+    let win = true;
+    let col = [];
+
+    for (let r = 0; r < size; r++) {
+      const i = r * size + c;
+      col.push(cells[i]);
+      if (!cells[i].classList.contains("checked")) win = false;
+    }
+
+    if (win) {
+      hasWin = true;
+      col.forEach(cell => cell.classList.add("win"));
+    }
+  }
+
+  // diagonales
+  let win1 = true;
+  let win2 = true;
+
+  for (let i = 0; i < size; i++) {
+    if (!cells[i * size + i].classList.contains("checked")) win1 = false;
+    if (!cells[i * size + (size - 1 - i)].classList.contains("checked")) win2 = false;
+  }
+
+  if (win1) {
+    hasWin = true;
+    for (let i = 0; i < size; i++) {
+      cells[i * size + i].classList.add("win");
+    }
+  }
+
+  if (win2) {
+    hasWin = true;
+    for (let i = 0; i < size; i++) {
+      cells[i * size + (size - 1 - i)].classList.add("win");
+    }
+  }
+
+  if (hasWin) showBingo();
 }
 
 loadConfig();
