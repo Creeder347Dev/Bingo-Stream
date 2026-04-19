@@ -5,24 +5,37 @@ body{
 }
 
 .card{
-  max-width:600px;
+  max-width:700px;
   margin:10vh auto;
   background:#1a1a1a;
   padding:20px;
   border-radius:10px;
 }
 
-.row{
+/* HEADER */
+.header-row{
   display:grid;
-  grid-template-columns:1fr 80px 50px;
+  grid-template-columns:1fr 80px 80px;
   gap:10px;
   margin-bottom:10px;
-  align-items:center;
+  font-weight:bold;
+  text-align:center;
 }
 
+/* ROW */
+.row{
+  display:grid;
+  grid-template-columns:1fr 80px 80px;
+  gap:10px;
+  align-items:center;
+  margin-bottom:10px;
+}
+
+/* TEXTAREA */
 textarea{
   width:100%;
-  resize:none;
+  min-height:40px;
+  resize:vertical;
   background:#222;
   color:white;
   border:none;
@@ -30,7 +43,7 @@ textarea{
   padding:6px;
 }
 
-/* slider */
+/* SLIDER */
 .switch{
   position:relative;
   display:inline-block;
@@ -73,15 +86,23 @@ textarea{
   transform:translateX(26px);
 }
 
-/* delete */
+/* BUTTON DELETE */
 button{
   background:#ff4d4d;
   border:none;
   border-radius:6px;
   color:white;
   cursor:pointer;
+  padding:6px;
 }
 
 button:hover{
   background:#cc0000;
+}
+
+/* ACTIONS */
+.actions{
+  display:flex;
+  justify-content:space-between;
+  margin-top:15px;
 }
