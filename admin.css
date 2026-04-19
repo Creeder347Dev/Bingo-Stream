@@ -12,11 +12,11 @@ body{
   border-radius:10px;
 }
 
-/* TABLE STRUCTURE */
+/* STRUCTURE */
 .header-row,
 .row{
   display:grid;
-  grid-template-columns:1fr 100px 100px;
+  grid-template-columns:minmax(0,1fr) 80px 80px;
   align-items:center;
   gap:10px;
 }
@@ -35,26 +35,11 @@ body{
   padding:10px;
   border-radius:6px;
   background:#1a1a1a;
-  transition:.2s;
   border-bottom:1px solid #2a2a2a;
 }
 
 .row:hover{
   background:#222;
-}
-
-/* ALIGN */
-.header-row div:nth-child(1),
-.row textarea{
-  text-align:left;
-}
-
-.header-row div:nth-child(2),
-.header-row div:nth-child(3),
-.row .switch,
-.row button{
-  display:flex;
-  justify-content:center;
 }
 
 /* TEXTAREA */
@@ -67,6 +52,13 @@ textarea{
   border:none;
   border-radius:6px;
   padding:8px;
+  box-sizing:border-box;
+}
+
+/* ALIGN */
+.row .switch,
+.row button{
+  justify-self:center;
 }
 
 /* SLIDER */
@@ -112,7 +104,7 @@ textarea{
   transform:translateX(26px);
 }
 
-/* DELETE */
+/* BUTTON */
 button{
   background:#ff4d4d;
   border:none;
@@ -126,7 +118,6 @@ button:hover{
   background:#cc0000;
 }
 
-/* ACTIONS */
 .actions{
   display:flex;
   justify-content:space-between;
