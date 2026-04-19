@@ -67,7 +67,6 @@ body::before {
   font-size: clamp(14px, 2.2vw, 22px);
 }
 
-/* CHECKED */
 .cell.checked {
   background: #00ffcc;
   color: black;
@@ -75,7 +74,6 @@ body::before {
   box-shadow: 0 0 15px #00ffcc;
 }
 
-/* WIN */
 .cell.win {
   background: linear-gradient(135deg, #00ffcc, #00aaff);
   color: black;
@@ -119,49 +117,40 @@ button:hover {
   transform: translateX(-50%) translateY(0);
 }
 
-/* ===== BINGO MESSAGE FIX ===== */
+/* ===== BINGO CARD ===== */
 #bingoMessage {
   position: fixed;
   top: 50%;
   left: 50%;
-  transform: translate(-50%, -50%) scale(0);
-
-  font-size: 80px;
-  font-weight: bold;
-  color: #00ffcc;
-
-  text-shadow: 
-    0 0 20px #00ffcc,
-    0 0 40px #00ffcc,
-    0 0 80px #00ffcc;
-
+  transform: translate(-50%, -50%) scale(0.5);
   opacity: 0;
   z-index: 9999;
   pointer-events: none;
 }
 
+#bingoMessage .card {
+  background: rgba(0, 0, 0, 0.85);
+  border: 2px solid #00ffcc;
+  border-radius: 16px;
+  padding: 30px 50px;
+  backdrop-filter: blur(10px);
+  text-align: center;
+  box-shadow: 0 0 30px rgba(0,255,204,0.4);
+}
+
+#bingoMessage .title {
+  font-size: 50px;
+  font-weight: bold;
+  color: #00ffcc;
+  text-shadow: 0 0 15px #00ffcc;
+}
+
 #bingoMessage.show {
-  animation: bingoAnim 2s ease forwards;
+  animation: bingoAnim 1.5s ease forwards;
 }
 
 @keyframes bingoAnim {
-  0% {
-    transform: translate(-50%, -50%) scale(0.3);
-    opacity: 0;
-  }
-
-  40% {
-    transform: translate(-50%, -50%) scale(1.4);
-    opacity: 1;
-  }
-
-  70% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 1;
-  }
-
-  100% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0;
-  }
+  0% { transform: translate(-50%, -50%) scale(0.6); opacity: 0; }
+  50% { transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
 }
