@@ -119,7 +119,6 @@ function checkWin() {
 
   let hasWin = false;
 
-  // lignes
   for (let r = 0; r < size; r++) {
     let win = true;
     let row = [];
@@ -136,7 +135,6 @@ function checkWin() {
     }
   }
 
-  // colonnes
   for (let c = 0; c < size; c++) {
     let win = true;
     let col = [];
@@ -153,7 +151,6 @@ function checkWin() {
     }
   }
 
-  // diagonales
   let win1 = true;
   let win2 = true;
 
