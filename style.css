@@ -119,28 +119,49 @@ button:hover {
   transform: translateX(-50%) translateY(0);
 }
 
-/* BINGO MESSAGE */
+/* ===== BINGO MESSAGE FIX ===== */
 #bingoMessage {
   position: fixed;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%) scale(0);
 
-  font-size: 60px;
+  font-size: 80px;
   font-weight: bold;
   color: #00ffcc;
 
-  text-shadow: 0 0 20px #00ffcc, 0 0 40px #00ffcc;
+  text-shadow: 
+    0 0 20px #00ffcc,
+    0 0 40px #00ffcc,
+    0 0 80px #00ffcc;
 
   opacity: 0;
+  z-index: 9999;
+  pointer-events: none;
 }
 
 #bingoMessage.show {
-  animation: bingoAnim 1.2s ease forwards;
+  animation: bingoAnim 2s ease forwards;
 }
 
 @keyframes bingoAnim {
-  0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-  50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-  100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+
+  40% {
+    transform: translate(-50%, -50%) scale(1.4);
+    opacity: 1;
+  }
+
+  70% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
 }
