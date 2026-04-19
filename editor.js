@@ -10,7 +10,7 @@ async function login() {
     body: JSON.stringify({ password })
   });
 
-  if (!res.ok) return alert("❌ mauvais mot de passe");
+  if (!res.ok) return alert("Erreur");
 
   const data = await res.json();
   token = data.token;
@@ -29,23 +29,10 @@ function render() {
   container.innerHTML = "";
 
   config.phrases.forEach((text, i) => {
-    const div = document.createElement("div");
-    div.className = "row";
-
     const input = document.createElement("input");
     input.value = text;
     input.oninput = () => config.phrases[i] = input.value;
-
-    const del = document.createElement("button");
-    del.innerText = "❌";
-    del.onclick = () => {
-      config.phrases.splice(i,1);
-      render();
-    };
-
-    div.appendChild(input);
-    div.appendChild(del);
-    container.appendChild(div);
+    container.appendChild(input);
   });
 }
 
@@ -55,7 +42,7 @@ function addPhrase() {
 }
 
 async function save() {
-  if (!token) return alert("login requis");
+  if (!token) return;
 
   await fetch("/api/config", {
     method:"POST",
@@ -65,6 +52,15 @@ async function save() {
     },
     body: JSON.stringify({ phrases: config.phrases })
   });
+}
 
-  alert("✅ sauvegardé !");
+async function resetBingo() {
+  if (!token) return;
+
+  await fetch("/api/reset", {
+    method: "POST",
+    headers: {
+      "Authorization": "Bearer " + token
+    }
+  });
 }

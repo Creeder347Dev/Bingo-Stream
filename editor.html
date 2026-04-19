@@ -3,24 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>Editor Bingo</title>
-<style>
-body { font-family: Arial; background:#111; color:white; padding:20px; }
-input { width:100%; padding:8px; margin-bottom:5px; }
-button { padding:8px; margin:5px; }
-.row { display:flex; gap:5px; }
-</style>
 </head>
 <body>
 
-<h1>🎯 Editor Bingo</h1>
-
-<input type="password" id="password" placeholder="Mot de passe admin">
+<input type="password" id="password">
 <button onclick="login()">Login</button>
 
 <div id="phrases"></div>
 
-<button onclick="addPhrase()">➕ Ajouter</button>
-<button onclick="save()">💾 Sauvegarder</button>
+<button onclick="addPhrase()">Ajouter</button>
+<button onclick="save()">Sauvegarder</button>
+<button onclick="resetBingo()">Reset global</button>
 
 <script src="editor.js"></script>
 
