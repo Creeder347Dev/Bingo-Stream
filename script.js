@@ -96,10 +96,21 @@ function showToast(message) {
   setTimeout(() => toast.classList.remove("show"), 2000);
 }
 
+/* ===== BINGO FIX ===== */
+let bingoActive = false;
+
 function showBingo() {
+  if (bingoActive) return;
+
+  bingoActive = true;
+
   const el = document.getElementById("bingoMessage");
   el.classList.add("show");
-  setTimeout(() => el.classList.remove("show"), 2000);
+
+  setTimeout(() => {
+    el.classList.remove("show");
+    bingoActive = false;
+  }, 2000);
 }
 
 function checkWin() {
