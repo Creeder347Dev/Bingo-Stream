@@ -3,16 +3,19 @@ let config = { phrases: [] };
 
 const GRID_DURATION = 24 * 60 * 60 * 1000;
 
+// shuffle
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
 
+// load config
 async function loadConfig() {
   const res = await fetch("/api/config");
   config = await res.json();
   generateGrid();
 }
 
+// generate grid
 function generateGrid() {
   grid.innerHTML = "";
 
@@ -43,9 +46,7 @@ function generateGrid() {
     div.className = "cell";
     div.innerHTML = `<span>${text.text || text}</span>`;
 
-    if (checked.includes(index)) {
-      div.classList.add("checked");
-    }
+    if (checked.includes(index)) div.classList.add("checked");
 
     div.onclick = () => {
       div.classList.toggle("checked");
@@ -66,11 +67,13 @@ function generateGrid() {
   });
 }
 
+// reset
 function resetGrid() {
   localStorage.removeItem("bingoState");
   generateGrid();
 }
 
+// copy
 function copyGrid() {
   const cells = document.querySelectorAll(".cell span");
 
@@ -79,7 +82,6 @@ function copyGrid() {
   cells.forEach((cell, i) => {
     const checked = cell.parentElement.classList.contains("checked") ? "✅" : "⬜";
     text += `${checked} ${cell.innerText}\n`;
-
     if ((i + 1) % 5 === 0) text += "\n";
   });
 
@@ -87,6 +89,7 @@ function copyGrid() {
   showToast("Grille copiée !");
 }
 
+// toast
 function showToast(message) {
   const toast = document.getElementById("toast");
   toast.innerText = message;
