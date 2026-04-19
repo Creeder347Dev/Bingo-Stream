@@ -3,6 +3,8 @@ let config = { phrases: [] };
 
 const GRID_DURATION = 24 * 60 * 60 * 1000;
 
+let bingoAlreadyShown = false;
+
 function shuffle(array) {
   return array.sort(() => Math.random() - 0.5);
 }
@@ -70,6 +72,7 @@ function generateGrid() {
 
 function resetGrid() {
   localStorage.removeItem("bingoState");
+  bingoAlreadyShown = false;
   generateGrid();
 }
 
@@ -92,25 +95,20 @@ function showToast(message) {
   const toast = document.getElementById("toast");
   toast.innerText = message;
   toast.classList.add("show");
-
   setTimeout(() => toast.classList.remove("show"), 2000);
 }
 
-/* ===== BINGO FIX ===== */
-let bingoActive = false;
-
 function showBingo() {
-  if (bingoActive) return;
+  if (bingoAlreadyShown) return;
 
-  bingoActive = true;
+  bingoAlreadyShown = true;
 
   const el = document.getElementById("bingoMessage");
   el.classList.add("show");
 
   setTimeout(() => {
     el.classList.remove("show");
-    bingoActive = false;
-  }, 2000);
+  }, 2500);
 }
 
 function checkWin() {
