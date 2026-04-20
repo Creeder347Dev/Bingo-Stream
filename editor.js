@@ -1,67 +1,77 @@
-let config={phrases:[]};
-const token=localStorage.getItem("token");
-if(!token) location.href="/login.html";
+// ===============================
+// AUTH CHECK
+// ===============================
+const token = localStorage.getItem("token");
+if (!token) location.href = "/login.html";
 
-async function load(){
- const r=await fetch("/api/config");
- config=await r.json();
- render();
-}
+// ===============================
+// LOAD CONFIG
+// ===============================
+let config = { phrases: [] };
 
-function render(){
- const c=document.getElementById("phrases");
- c.innerHTML="";
-
- config.phrases.forEach((p,i)=>{
-  const row=document.createElement("div");
-  row.className="row";
-
-  const inputText=document.createElement("textarea");
-  inputText.value=p.text;
-  inputText.oninput=()=>config.phrases[i].text=inputText.value;
-
-  const toggle=document.createElement("label");
-  toggle.className="switch";
-
-  const input=document.createElement("input");
-  input.type="checkbox";
-  input.checked=p.forced;
-  input.onchange=()=>config.phrases[i].forced=input.checked;
-
-  const slider=document.createElement("span");
-  slider.className="slider";
-
-  toggle.appendChild(input);
-  toggle.appendChild(slider);
-
-  const del=document.createElement("button");
-  del.innerHTML="&times;";
-  del.onclick=()=>{
-    if(confirm("Supprimer cette phrase ?")){
-      config.phrases.splice(i,1);
-      render();
+async function load() {
+  const res = await fetch("/api/config", {
+    headers: {
+      "Authorization": "Bearer " + token
     }
-  };
+  });
 
-  row.append(inputText,toggle,del);
-  c.appendChild(row);
- });
+  const text = await res.text();
+  console.log("API RESPONSE:", text);
+
+  config = JSON.parse(text);
+  render();
 }
 
-function addPhrase(){
- config.phrases.push({text:"Nouvelle phrase",forced:false});
- render();
+// ===============================
+// RENDER
+// ===============================
+function render() {
+  const container = document.getElementById("phrases");
+  container.innerHTML = "";
+
+  config.phrases.forEach((p, i) => {
+    const row = document.createElement("div");
+    row.className = "row";
+
+    const input = document.createElement("textarea");
+    input.value = p.text;
+    input.oninput = () => config.phrases[i].text = input.value;
+
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.checked = p.forced;
+    checkbox.onchange = () => config.phrases[i].forced = checkbox.checked;
+
+    const del = document.createElement("button");
+    del.innerText = "🗑";
+    del.onclick = () => {
+      config.phrases.splice(i, 1);
+      render();
+    };
+
+    row.append(input, checkbox, del);
+    container.appendChild(row);
+  });
 }
 
-async function save(){
- await fetch("/api/config",{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json",
-   "Authorization":"Bearer "+token
-  },
-  body:JSON.stringify(config)
- });
+// ===============================
+// SAVE
+// ===============================
+async function save() {
+  await fetch("/api/config", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": "Bearer " + token
+    },
+    body: JSON.stringify(config)
+  });
+
+  alert("Sauvegardé !");
 }
 
+// ===============================
+// INIT
+// ===============================
 load();
