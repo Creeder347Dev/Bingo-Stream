@@ -33,37 +33,17 @@ function generateGrid() {
   const size = config.gridSize;
   const total = size * size;
 
-  // ===============================
-  // 🔥 SEULE MODIF : GESTION FORCED
-  // ===============================
-
-  const isForced = (p) => typeof p === "object" && p.forced;
-
-  const forced = config.phrases.filter(isForced);
-  let normal = config.phrases.filter(p => !isForced(p));
-
-  // Duplication uniquement des normales (comme ton système d'origine)
-  while (normal.length < total) {
-    normal = normal.concat(normal);
+  // Si pas assez de phrases → duplication
+  let pool = [...config.phrases];
+  while (pool.length < total) {
+    pool = pool.concat(config.phrases);
   }
 
-  const shuffle = arr => arr.sort(() => Math.random() - 0.5);
+  // Mélange + sélection
+  const shuffled = pool.sort(() => Math.random() - 0.5);
+  const selected = shuffled.slice(0, total);
 
-  const shuffledForced = shuffle([...forced]);
-  const shuffledNormal = shuffle([...normal]);
-
-  // On garantit que les forced sont inclus
-  let selected = [
-    ...shuffledForced.slice(0, total),
-    ...shuffledNormal.slice(0, total - forced.length)
-  ];
-
-  // Mélange final pour garder un rendu aléatoire
-  selected = shuffle(selected);
-
-  // ===============================
-  // GRID (INCHANGÉ)
-  // ===============================
+  // Applique la taille dynamique de grille
   grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
   selected.forEach(text => {
@@ -71,9 +51,7 @@ function generateGrid() {
     div.className = "cell";
 
     const span = document.createElement("span");
-
-    // compatible string + objet
-    span.innerText = (typeof text === "object") ? text.text : text;
+    span.innerText = text;
 
     div.appendChild(span);
 
@@ -96,7 +74,7 @@ function generateGrid() {
 // ===============================
 function setUniformTextSize() {
   let minSize = 8;
-  let maxSize = 200;
+  let maxSize = 200; // beaucoup plus haut
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
@@ -123,11 +101,13 @@ function setUniformTextSize() {
     }
   }
 
+  // Applique la meilleure taille trouvée
   cells.forEach(cell => {
     cell.querySelector("span").style.fontSize = bestSize + "px";
   });
 }
 
+// Recalcul au resize
 window.addEventListener("resize", setUniformTextSize);
 
 
@@ -157,7 +137,7 @@ function checkBingo(size) {
   }
 
   if (Array.from({ length: size }, (_, i) => cells[(i + 1) * (size - 1)]).every(c => c.classList.contains("checked"))) {
-    win = true;
+      win = true;
   }
 
   if (win) {
