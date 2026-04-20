@@ -66,11 +66,11 @@ app.post("/api/login", async (req, res) => {
 
 
 // ===============================
-// CONFIG (AJOUT)
+// CONFIG
 // ===============================
 
-// GET config
-app.get("/api/config", auth, (req, res) => {
+// ✅ PUBLIC (lecture)
+app.get("/api/config", (req, res) => {
   try {
     if (!fs.existsSync(CONFIG_PATH)) {
       return res.json({ phrases: [] });
@@ -85,7 +85,7 @@ app.get("/api/config", auth, (req, res) => {
   }
 });
 
-// SAVE config
+// 🔒 PROTÉGÉ (écriture)
 app.post("/api/config", auth, (req, res) => {
   try {
     fs.writeFileSync(CONFIG_PATH, JSON.stringify(req.body, null, 2));
