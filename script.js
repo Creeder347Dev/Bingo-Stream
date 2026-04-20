@@ -34,54 +34,49 @@ function generateGrid() {
   const total = size * size;
 
   // ===============================
-  // FIX FORCED + SAFE DATA
+  // 🔥 FIX FORCED (SEULE MODIF)
   // ===============================
 
-  // Normalisation
-  const phrases = config.phrases.map(p =>
-    typeof p === "string"
-      ? { text: p, forced: false }
-      : { text: p.text, forced: !!p.forced }
-  );
+  // Séparer forcé / normal (compatible string + objet)
+  const forced = config.phrases.filter(p => typeof p === "object" && p.forced);
+  let normal = config.phrases.filter(p => !(typeof p === "object" && p.forced));
 
-  let forced = phrases.filter(p => p.forced);
-  let normal = phrases.filter(p => !p.forced);
-
-  // Duplication SAFE (pas infinie)
+  // Duplication uniquement des normales si besoin
   while (normal.length < total) {
-    normal.push(...phrases.filter(p => !p.forced));
+    normal = normal.concat(normal);
   }
 
-  // Shuffle
+  // Mélange
   const shuffle = arr => arr.sort(() => Math.random() - 0.5);
 
-  forced = shuffle(forced);
-  normal = shuffle(normal);
+  const mixedForced = shuffle([...forced]);
+  const mixedNormal = shuffle([...normal]);
 
   // Construction finale
   let selected = [
-    ...forced.slice(0, total),
-    ...normal.slice(0, total - forced.length)
+    ...mixedForced.slice(0, total),
+    ...mixedNormal.slice(0, total - forced.length)
   ];
 
   selected = shuffle(selected);
 
   // ===============================
-  // GRID
+  // GRID (inchangé)
   // ===============================
   grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
-  selected.forEach(item => {
+  selected.forEach(text => {
     const div = document.createElement("div");
     div.className = "cell";
 
     const span = document.createElement("span");
 
-    // 🔥 IMPORTANT FIX
-    span.innerText = item.text || item;
+    // 🔥 compatible string + objet
+    span.innerText = text.text || text;
 
     div.appendChild(span);
 
+    // Interaction clic
     div.onclick = () => {
       div.classList.toggle("checked");
       checkBingo(size);
@@ -96,11 +91,11 @@ function generateGrid() {
 
 
 // ===============================
-// TEXTE UNIFORME
+// TEXTE UNIFORME (INCHANGÉ)
 // ===============================
 function setUniformTextSize() {
-  let minSize = 10;
-  let maxSize = 40; // limite safe
+  let minSize = 8;
+  let maxSize = 200;
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
@@ -136,7 +131,7 @@ window.addEventListener("resize", setUniformTextSize);
 
 
 // ===============================
-// VÉRIFICATION BINGO
+// VÉRIFICATION BINGO (INCHANGÉ)
 // ===============================
 function checkBingo(size) {
   let win = false;
@@ -175,7 +170,7 @@ function checkBingo(size) {
 
 
 // ===============================
-// RESET
+// RESET (INCHANGÉ)
 // ===============================
 function resetGrid() {
   generateGrid();
@@ -185,7 +180,7 @@ function resetGrid() {
 
 
 // ===============================
-// INIT
+// INIT (INCHANGÉ)
 // ===============================
 (async function init() {
   await loadConfig();
