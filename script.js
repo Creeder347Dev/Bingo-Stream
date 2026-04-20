@@ -74,7 +74,7 @@ function generateGrid() {
 // ===============================
 function setUniformTextSize() {
   let minSize = 8;
-  let maxSize = 200; // beaucoup plus haut
+  let maxSize = 200;
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
@@ -101,7 +101,6 @@ function setUniformTextSize() {
     }
   }
 
-  // Applique la meilleure taille trouvée
   cells.forEach(cell => {
     cell.querySelector("span").style.fontSize = bestSize + "px";
   });
