@@ -1,179 +1,191 @@
+// ===============================
+// RÉFÉRENCES DOM
+// ===============================
 const grid = document.getElementById("grid");
-let config = { phrases: [] };
+const statusEl = document.getElementById("status");
 
-const GRID_DURATION = 24 * 60 * 60 * 1000;
+let cells = [];
+let config = null;
 
-let bingoAlreadyShown = false;
 
-function shuffle(array) {
-  return array.sort(() => Math.random() - 0.5);
-}
-
+// ===============================
+// CHARGEMENT CONFIG JSON
+// ===============================
 async function loadConfig() {
-  const res = await fetch("/api/config");
-  config = await res.json();
-  generateGrid();
+  try {
+    const response = await fetch("./config.json?v=" + Date.now());
+    config = await response.json();
+
+    console.log("CONFIG LOADED:", config);
+  } catch (e) {
+    console.error("Erreur chargement config:", e);
+  }
 }
 
+
+// ===============================
+// GÉNÉRATION DE LA GRILLE
+// ===============================
 function generateGrid() {
   grid.innerHTML = "";
+  cells = [];
 
-  const now = Date.now();
-  let saved = JSON.parse(localStorage.getItem("bingoState"));
+  const size = config.gridSize;
+  const total = size * size;
 
-  let selected;
-  let checked = [];
+  // ===============================
+  // 🔥 FIX FORCED
+  // ===============================
 
-  if (saved && (now - saved.timestamp < GRID_DURATION)) {
-    selected = saved.grid;
-    checked = saved.checked || [];
-  } else {
-    const shuffled = shuffle([...config.phrases]);
-    selected = shuffled.slice(0, 25);
+  // Normalisation (support string + objet)
+  const phrases = config.phrases.map(p =>
+    typeof p === "string" ? { text: p, forced: false } : p
+  );
 
-    saved = {
-      grid: selected,
-      checked: [],
-      timestamp: now
-    };
+  // Séparer
+  let forced = phrases.filter(p => p.forced);
+  let normal = phrases.filter(p => !p.forced);
 
-    localStorage.setItem("bingoState", JSON.stringify(saved));
+  // Sécurité : si pas assez de normal → duplication
+  while (normal.length < total) {
+    normal = normal.concat(normal);
   }
 
-  selected.forEach((text, index) => {
+  // Shuffle
+  forced = forced.sort(() => Math.random() - 0.5);
+  normal = normal.sort(() => Math.random() - 0.5);
+
+  // Construction
+  let selected = [
+    ...forced.slice(0, total),
+    ...normal.slice(0, total - forced.length)
+  ];
+
+  // Mélange final
+  selected = selected.sort(() => Math.random() - 0.5);
+
+  // ===============================
+  // GRID
+  // ===============================
+
+  grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+
+  selected.forEach(item => {
     const div = document.createElement("div");
     div.className = "cell";
-    div.innerHTML = `<span>${text.text || text}</span>`;
 
-    if (checked.includes(index)) div.classList.add("checked");
+    const span = document.createElement("span");
+    span.innerText = item.text;
 
+    div.appendChild(span);
+
+    // Interaction clic
     div.onclick = () => {
       div.classList.toggle("checked");
-
-      let state = JSON.parse(localStorage.getItem("bingoState"));
-      if (!state) return;
-
-      if (div.classList.contains("checked")) {
-        if (!state.checked.includes(index)) state.checked.push(index);
-      } else {
-        state.checked = state.checked.filter(i => i !== index);
-      }
-
-      localStorage.setItem("bingoState", JSON.stringify(state));
-
-      checkWin();
+      checkBingo(size);
     };
 
     grid.appendChild(div);
+    cells.push(div);
   });
 
-  checkWin();
+  setUniformTextSize();
 }
 
-function resetGrid() {
-  localStorage.removeItem("bingoState");
-  bingoAlreadyShown = false;
-  generateGrid();
-}
 
-function copyGrid() {
-  const cells = document.querySelectorAll(".cell span");
+// ===============================
+// TEXTE UNIFORME (IMPORTANT)
+// ===============================
+function setUniformTextSize() {
+  let minSize = 8;
+  let maxSize = 200;
+  let bestSize = minSize;
 
-  let text = "🎯 Bingo du chat 🎯\n\n";
+  while (minSize <= maxSize) {
+    let mid = Math.floor((minSize + maxSize) / 2);
+    let fits = true;
 
-  cells.forEach((cell, i) => {
-    const checked = cell.parentElement.classList.contains("checked") ? "✅" : "⬜";
-    text += `${checked} ${cell.innerText}\n`;
-    if ((i + 1) % 5 === 0) text += "\n";
-  });
+    cells.forEach(cell => {
+      const span = cell.querySelector("span");
+      span.style.fontSize = mid + "px";
 
-  navigator.clipboard.writeText(text);
-  showToast("Grille copiée !");
-}
+      if (
+        span.scrollHeight > cell.clientHeight ||
+        span.scrollWidth > cell.clientWidth
+      ) {
+        fits = false;
+      }
+    });
 
-function showToast(message) {
-  const toast = document.getElementById("toast");
-  toast.innerText = message;
-  toast.classList.add("show");
-  setTimeout(() => toast.classList.remove("show"), 2000);
-}
-
-function showBingo() {
-  if (bingoAlreadyShown) return;
-
-  bingoAlreadyShown = true;
-
-  const el = document.getElementById("bingoMessage");
-  el.classList.add("show");
-
-  setTimeout(() => {
-    el.classList.remove("show");
-  }, 2500);
-}
-
-function checkWin() {
-  const cells = document.querySelectorAll(".cell");
-  const size = 5;
-
-  cells.forEach(c => c.classList.remove("win"));
-
-  let hasWin = false;
-
-  for (let r = 0; r < size; r++) {
-    let win = true;
-    let row = [];
-
-    for (let c = 0; c < size; c++) {
-      const i = r * size + c;
-      row.push(cells[i]);
-      if (!cells[i].classList.contains("checked")) win = false;
-    }
-
-    if (win) {
-      hasWin = true;
-      row.forEach(cell => cell.classList.add("win"));
+    if (fits) {
+      bestSize = mid;
+      minSize = mid + 1;
+    } else {
+      maxSize = mid - 1;
     }
   }
 
-  for (let c = 0; c < size; c++) {
-    let win = true;
-    let col = [];
+  cells.forEach(cell => {
+    cell.querySelector("span").style.fontSize = bestSize + "px";
+  });
+}
 
-    for (let r = 0; r < size; r++) {
-      const i = r * size + c;
-      col.push(cells[i]);
-      if (!cells[i].classList.contains("checked")) win = false;
-    }
+window.addEventListener("resize", setUniformTextSize);
 
-    if (win) {
-      hasWin = true;
-      col.forEach(cell => cell.classList.add("win"));
-    }
-  }
 
-  let win1 = true;
-  let win2 = true;
+// ===============================
+// VÉRIFICATION BINGO
+// ===============================
+function checkBingo(size) {
+  let win = false;
 
+  // Lignes
   for (let i = 0; i < size; i++) {
-    if (!cells[i * size + i].classList.contains("checked")) win1 = false;
-    if (!cells[i * size + (size - 1 - i)].classList.contains("checked")) win2 = false;
-  }
-
-  if (win1) {
-    hasWin = true;
-    for (let i = 0; i < size; i++) {
-      cells[i * size + i].classList.add("win");
+    if (cells.slice(i * size, i * size + size).every(c => c.classList.contains("checked"))) {
+      win = true;
     }
   }
 
-  if (win2) {
-    hasWin = true;
-    for (let i = 0; i < size; i++) {
-      cells[i * size + (size - 1 - i)].classList.add("win");
+  // Colonnes
+  for (let i = 0; i < size; i++) {
+    if (Array.from({ length: size }, (_, j) => cells[i + j * size]).every(c => c.classList.contains("checked"))) {
+      win = true;
     }
   }
 
-  if (hasWin) showBingo();
+  // Diagonales
+  if (Array.from({ length: size }, (_, i) => cells[i * (size + 1)]).every(c => c.classList.contains("checked"))) {
+    win = true;
+  }
+
+  if (Array.from({ length: size }, (_, i) => cells[(i + 1) * (size - 1)]).every(c => c.classList.contains("checked"))) {
+    win = true;
+  }
+
+  if (win) {
+    statusEl.innerText = "🔥 BINGO !!! 🔥";
+    statusEl.classList.add("bingo-win");
+  } else {
+    statusEl.innerText = "";
+    statusEl.classList.remove("bingo-win");
+  }
 }
 
-loadConfig();
+
+// ===============================
+// RESET
+// ===============================
+function resetGrid() {
+  generateGrid();
+  statusEl.innerText = "";
+  statusEl.classList.remove("bingo-win");
+}
+
+
+// ===============================
+// INIT
+// ===============================
+(async function init() {
+  await loadConfig();
+  generateGrid();
+})();
