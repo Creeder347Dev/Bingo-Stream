@@ -28,8 +28,33 @@ function generateGrid() {
     selected = saved.grid;
     checked = saved.checked || [];
   } else {
-    const shuffled = shuffle([...config.phrases]);
-    selected = shuffled.slice(0, 25);
+
+    // ===============================
+    // 🔥 MODIF UNIQUE : FORCED
+    // ===============================
+
+    const phrases = config.phrases.map(p =>
+      typeof p === "string" ? { text: p, forced: false } : p
+    );
+
+    const forced = phrases.filter(p => p.forced);
+    let normal = phrases.filter(p => !p.forced);
+
+    while (normal.length < 25) {
+      normal = normal.concat(normal);
+    }
+
+    const shuffledForced = shuffle([...forced]);
+    const shuffledNormal = shuffle([...normal]);
+
+    selected = [
+      ...shuffledForced.slice(0, 25),
+      ...shuffledNormal.slice(0, 25 - forced.length)
+    ];
+
+    selected = shuffle(selected);
+
+    // ===============================
 
     saved = {
       grid: selected,
