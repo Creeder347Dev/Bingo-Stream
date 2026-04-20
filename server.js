@@ -1,41 +1,53 @@
 import express from "express";
-import fs from "fs";
 import jwt from "jsonwebtoken";
-import { WebSocketServer } from "ws";
+import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+import pool from "./db.js";
+
+dotenv.config();
 
 const app = express();
 app.use(express.json());
 
-const PASSWORD = process.env.ADMIN_PASSWORD || "admin";
-const JWT_SECRET = "secret";
 
-app.post("/api/login",(req,res)=>{
-  if(req.body.password !== PASSWORD) return res.sendStatus(401);
-  const token = jwt.sign({}, JWT_SECRET);
-  res.json({token});
+// ===============================
+// LOGIN ADMIN (NOUVEAU)
+// ===============================
+app.post("/api/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    const result = await pool.query(
+      "SELECT * FROM users WHERE username = $1",
+      [username]
+    );
+
+    const user = result.rows[0];
+    if (!user) return res.status(401).json({ error: "User not found" });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: "Wrong password" });
+
+    const token = jwt.sign(
+      { id: user.id, role: user.role },
+      process.env.JWT_SECRET,
+      { expiresIn: "12h" }
+    );
+
+    res.json({ token });
+
+  } catch (err) {
+    console.error("Login error:", err);
+    res.sendStatus(500);
+  }
 });
 
-function auth(req,res,next){
-  const token = req.headers.authorization?.split(" ")[1];
-  try{ jwt.verify(token, JWT_SECRET); next(); }
-  catch{ res.sendStatus(403); }
-}
 
-app.get("/api/config",(req,res)=>{
-  const data = fs.readFileSync("./config.json");
-  res.json(JSON.parse(data));
+// ===============================
+// SERVER
+// ===============================
+const PORT = 3000;
+
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
 });
-
-app.post("/api/config",auth,(req,res)=>{
-  fs.writeFileSync("./config.json", JSON.stringify(req.body, null, 2));
-  wss.clients.forEach(c=>c.send(JSON.stringify({type:"update"})));
-  res.json({ok:true});
-});
-
-app.post("/api/reset",auth,(req,res)=>{
-  wss.clients.forEach(c=>c.send(JSON.stringify({type:"reset"})));
-  res.json({ok:true});
-});
-
-const server = app.listen(3000);
-const wss = new WebSocketServer({ server });
