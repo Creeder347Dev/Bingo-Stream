@@ -43,7 +43,7 @@ function generateGrid() {
   const shuffled = pool.sort(() => Math.random() - 0.5);
   const selected = shuffled.slice(0, total);
 
-  // Applique la taille dynamique de grille
+  // FIX obligatoire JS
   grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
   selected.forEach(text => {
@@ -55,7 +55,6 @@ function generateGrid() {
 
     div.appendChild(span);
 
-    // Interaction clic
     div.onclick = () => {
       div.classList.toggle("checked");
       checkBingo(size);
@@ -70,11 +69,11 @@ function generateGrid() {
 
 
 // ===============================
-// TEXTE UNIFORME (IMPORTANT)
+// TEXTE UNIFORME
 // ===============================
 function setUniformTextSize() {
   let minSize = 8;
-  let maxSize = 200; // beaucoup plus haut
+  let maxSize = 200;
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
@@ -101,38 +100,32 @@ function setUniformTextSize() {
     }
   }
 
-  // Applique la meilleure taille trouvée
   cells.forEach(cell => {
     cell.querySelector("span").style.fontSize = bestSize + "px";
   });
 }
 
-
-// Recalcul au resize
 window.addEventListener("resize", setUniformTextSize);
 
 
 // ===============================
-// VÉRIFICATION BINGO
+// BINGO
 // ===============================
 function checkBingo(size) {
   let win = false;
 
-  // Lignes
   for (let i = 0; i < size; i++) {
     if (cells.slice(i * size, i * size + size).every(c => c.classList.contains("checked"))) {
       win = true;
     }
   }
 
-  // Colonnes
   for (let i = 0; i < size; i++) {
     if (Array.from({ length: size }, (_, j) => cells[i + j * size]).every(c => c.classList.contains("checked"))) {
       win = true;
     }
   }
 
-  // Diagonales
   if (Array.from({ length: size }, (_, i) => cells[i * (size + 1)]).every(c => c.classList.contains("checked"))) {
     win = true;
   }
