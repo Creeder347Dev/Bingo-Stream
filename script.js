@@ -44,7 +44,7 @@ function generateGrid() {
   const selected = shuffled.slice(0, total);
 
   // Applique la taille dynamique de grille
-  grid.style.gridTemplateColumns = repeat(${size}, 1fr);
+  grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
   selected.forEach(text => {
     const div = document.createElement("div");
