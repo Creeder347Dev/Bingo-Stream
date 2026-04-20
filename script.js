@@ -34,34 +34,35 @@ function generateGrid() {
   const total = size * size;
 
   // ===============================
-  // 🔥 FIX FORCED (SEULE MODIF)
+  // 🔥 SEULE MODIF : GESTION FORCED
   // ===============================
 
-  // Séparer forcé / normal (compatible string + objet)
-  const forced = config.phrases.filter(p => typeof p === "object" && p.forced);
-  let normal = config.phrases.filter(p => !(typeof p === "object" && p.forced));
+  const isForced = (p) => typeof p === "object" && p.forced;
 
-  // Duplication uniquement des normales si besoin
+  const forced = config.phrases.filter(isForced);
+  let normal = config.phrases.filter(p => !isForced(p));
+
+  // Duplication uniquement des normales (comme ton système d'origine)
   while (normal.length < total) {
     normal = normal.concat(normal);
   }
 
-  // Mélange
   const shuffle = arr => arr.sort(() => Math.random() - 0.5);
 
-  const mixedForced = shuffle([...forced]);
-  const mixedNormal = shuffle([...normal]);
+  const shuffledForced = shuffle([...forced]);
+  const shuffledNormal = shuffle([...normal]);
 
-  // Construction finale
+  // On garantit que les forced sont inclus
   let selected = [
-    ...mixedForced.slice(0, total),
-    ...mixedNormal.slice(0, total - forced.length)
+    ...shuffledForced.slice(0, total),
+    ...shuffledNormal.slice(0, total - forced.length)
   ];
 
+  // Mélange final pour garder un rendu aléatoire
   selected = shuffle(selected);
 
   // ===============================
-  // GRID (inchangé)
+  // GRID (INCHANGÉ)
   // ===============================
   grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
@@ -71,8 +72,8 @@ function generateGrid() {
 
     const span = document.createElement("span");
 
-    // 🔥 compatible string + objet
-    span.innerText = text.text || text;
+    // compatible string + objet
+    span.innerText = (typeof text === "object") ? text.text : text;
 
     div.appendChild(span);
 
@@ -91,7 +92,7 @@ function generateGrid() {
 
 
 // ===============================
-// TEXTE UNIFORME (INCHANGÉ)
+// TEXTE UNIFORME (IMPORTANT)
 // ===============================
 function setUniformTextSize() {
   let minSize = 8;
@@ -131,7 +132,7 @@ window.addEventListener("resize", setUniformTextSize);
 
 
 // ===============================
-// VÉRIFICATION BINGO (INCHANGÉ)
+// VÉRIFICATION BINGO
 // ===============================
 function checkBingo(size) {
   let win = false;
@@ -170,7 +171,7 @@ function checkBingo(size) {
 
 
 // ===============================
-// RESET (INCHANGÉ)
+// RESET
 // ===============================
 function resetGrid() {
   generateGrid();
@@ -180,7 +181,7 @@ function resetGrid() {
 
 
 // ===============================
-// INIT (INCHANGÉ)
+// INIT
 // ===============================
 (async function init() {
   await loadConfig();
