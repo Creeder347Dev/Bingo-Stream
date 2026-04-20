@@ -44,7 +44,7 @@ function generateGrid() {
   const selected = shuffled.slice(0, total);
 
   // Applique la taille dynamique de grille
-  grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+  grid.style.gridTemplateColumns = repeat(${size}, 1fr);
 
   selected.forEach(text => {
     const div = document.createElement("div");
@@ -74,7 +74,7 @@ function generateGrid() {
 // ===============================
 function setUniformTextSize() {
   let minSize = 8;
-  let maxSize = 200;
+  let maxSize = 200; // beaucoup plus haut
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
@@ -101,10 +101,12 @@ function setUniformTextSize() {
     }
   }
 
+  // Applique la meilleure taille trouvée
   cells.forEach(cell => {
     cell.querySelector("span").style.fontSize = bestSize + "px";
   });
 }
+
 
 // Recalcul au resize
 window.addEventListener("resize", setUniformTextSize);
