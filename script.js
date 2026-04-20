@@ -34,40 +34,41 @@ function generateGrid() {
   const total = size * size;
 
   // ===============================
-  // 🔥 FIX FORCED
+  // FIX FORCED + SAFE DATA
   // ===============================
 
-  // Normalisation (support string + objet)
+  // Normalisation
   const phrases = config.phrases.map(p =>
-    typeof p === "string" ? { text: p, forced: false } : p
+    typeof p === "string"
+      ? { text: p, forced: false }
+      : { text: p.text, forced: !!p.forced }
   );
 
-  // Séparer
   let forced = phrases.filter(p => p.forced);
   let normal = phrases.filter(p => !p.forced);
 
-  // Sécurité : si pas assez de normal → duplication
+  // Duplication SAFE (pas infinie)
   while (normal.length < total) {
-    normal = normal.concat(normal);
+    normal.push(...phrases.filter(p => !p.forced));
   }
 
   // Shuffle
-  forced = forced.sort(() => Math.random() - 0.5);
-  normal = normal.sort(() => Math.random() - 0.5);
+  const shuffle = arr => arr.sort(() => Math.random() - 0.5);
 
-  // Construction
+  forced = shuffle(forced);
+  normal = shuffle(normal);
+
+  // Construction finale
   let selected = [
     ...forced.slice(0, total),
     ...normal.slice(0, total - forced.length)
   ];
 
-  // Mélange final
-  selected = selected.sort(() => Math.random() - 0.5);
+  selected = shuffle(selected);
 
   // ===============================
   // GRID
   // ===============================
-
   grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
   selected.forEach(item => {
@@ -75,11 +76,12 @@ function generateGrid() {
     div.className = "cell";
 
     const span = document.createElement("span");
-    span.innerText = item.text;
+
+    // 🔥 IMPORTANT FIX
+    span.innerText = item.text || item;
 
     div.appendChild(span);
 
-    // Interaction clic
     div.onclick = () => {
       div.classList.toggle("checked");
       checkBingo(size);
@@ -94,11 +96,11 @@ function generateGrid() {
 
 
 // ===============================
-// TEXTE UNIFORME (IMPORTANT)
+// TEXTE UNIFORME
 // ===============================
 function setUniformTextSize() {
-  let minSize = 8;
-  let maxSize = 200;
+  let minSize = 10;
+  let maxSize = 40; // limite safe
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
