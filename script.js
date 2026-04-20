@@ -33,25 +33,49 @@ function generateGrid() {
   const size = config.gridSize;
   const total = size * size;
 
-  // Si pas assez de phrases → duplication
-  let pool = [...config.phrases];
-  while (pool.length < total) {
-    pool = pool.concat(config.phrases);
+  // ===============================
+  // 🔥 FIX FORCED
+  // ===============================
+
+  // Normalisation (support string + objet)
+  const phrases = config.phrases.map(p =>
+    typeof p === "string" ? { text: p, forced: false } : p
+  );
+
+  // Séparer
+  let forced = phrases.filter(p => p.forced);
+  let normal = phrases.filter(p => !p.forced);
+
+  // Sécurité : si pas assez de normal → duplication
+  while (normal.length < total) {
+    normal = normal.concat(normal);
   }
 
-  // Mélange + sélection
-  const shuffled = pool.sort(() => Math.random() - 0.5);
-  const selected = shuffled.slice(0, total);
+  // Shuffle
+  forced = forced.sort(() => Math.random() - 0.5);
+  normal = normal.sort(() => Math.random() - 0.5);
 
-  // Applique la taille dynamique de grille
+  // Construction
+  let selected = [
+    ...forced.slice(0, total),
+    ...normal.slice(0, total - forced.length)
+  ];
+
+  // Mélange final
+  selected = selected.sort(() => Math.random() - 0.5);
+
+  // ===============================
+  // GRID
+  // ===============================
+
   grid.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
 
-  selected.forEach(text => {
+  selected.forEach(item => {
     const div = document.createElement("div");
     div.className = "cell";
 
     const span = document.createElement("span");
-    span.innerText = text;
+    span.innerText = item.text;
 
     div.appendChild(span);
 
@@ -74,7 +98,7 @@ function generateGrid() {
 // ===============================
 function setUniformTextSize() {
   let minSize = 8;
-  let maxSize = 200; // beaucoup plus haut
+  let maxSize = 200;
   let bestSize = minSize;
 
   while (minSize <= maxSize) {
@@ -101,13 +125,11 @@ function setUniformTextSize() {
     }
   }
 
-  // Applique la meilleure taille trouvée
   cells.forEach(cell => {
     cell.querySelector("span").style.fontSize = bestSize + "px";
   });
 }
 
-// Recalcul au resize
 window.addEventListener("resize", setUniformTextSize);
 
 
