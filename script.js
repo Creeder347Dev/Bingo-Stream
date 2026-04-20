@@ -137,7 +137,7 @@ function checkBingo(size) {
   }
 
   if (Array.from({ length: size }, (_, i) => cells[(i + 1) * (size - 1)]).every(c => c.classList.contains("checked"))) {
-      win = true;
+    win = true;
   }
 
   if (win) {
