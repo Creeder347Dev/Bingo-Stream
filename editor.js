@@ -38,10 +38,21 @@ function render() {
     input.value = p.text;
     input.oninput = () => config.phrases[i].text = input.value;
 
-    const checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.checked = p.forced;
-    checkbox.onchange = () => config.phrases[i].forced = checkbox.checked;
+const toggle = document.createElement("label");
+toggle.className = "switch";
+
+const inputToggle = document.createElement("input");
+inputToggle.type = "checkbox";
+inputToggle.checked = p.forced;
+inputToggle.onchange = () => config.phrases[i].forced = inputToggle.checked;
+
+const slider = document.createElement("span");
+slider.className = "slider";
+
+toggle.appendChild(inputToggle);
+toggle.appendChild(slider);
+
+row.append(input, toggle, del);
 
     const del = document.createElement("button");
     del.innerText = "🗑";
