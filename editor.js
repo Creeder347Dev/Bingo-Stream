@@ -1,23 +1,26 @@
 // ===============================
-// AUTH CHECK
+// AUTH
 // ===============================
 const token = localStorage.getItem("token");
 if (!token) location.href = "/login.html";
 
 // ===============================
-// LOAD CONFIG
+// DATA
 // ===============================
 let config = { phrases: [] };
 
+// ===============================
+// LOAD
+// ===============================
 async function load() {
   const res = await fetch("/api/config", {
     headers: {
-      "Authorization": "Bearer " + token
+      Authorization: "Bearer " + token
     }
   });
 
   const text = await res.text();
-  console.log("API RESPONSE:", text);
+  console.log("API:", text);
 
   config = JSON.parse(text);
   render();
@@ -34,26 +37,29 @@ function render() {
     const row = document.createElement("div");
     row.className = "row";
 
+    // TEXT
     const input = document.createElement("textarea");
     input.value = p.text;
     input.oninput = () => config.phrases[i].text = input.value;
 
-const toggle = document.createElement("label");
-toggle.className = "switch";
+    // TOGGLE (SLIDER)
+    const toggle = document.createElement("label");
+    toggle.className = "switch";
 
-const inputToggle = document.createElement("input");
-inputToggle.type = "checkbox";
-inputToggle.checked = p.forced;
-inputToggle.onchange = () => config.phrases[i].forced = inputToggle.checked;
+    const inputToggle = document.createElement("input");
+    inputToggle.type = "checkbox";
+    inputToggle.checked = p.forced;
+    inputToggle.onchange = () => {
+      config.phrases[i].forced = inputToggle.checked;
+    };
 
-const slider = document.createElement("span");
-slider.className = "slider";
+    const slider = document.createElement("span");
+    slider.className = "slider";
 
-toggle.appendChild(inputToggle);
-toggle.appendChild(slider);
+    toggle.appendChild(inputToggle);
+    toggle.appendChild(slider);
 
-row.append(input, toggle, del);
-
+    // DELETE
     const del = document.createElement("button");
     del.innerText = "🗑";
     del.onclick = () => {
@@ -61,9 +67,20 @@ row.append(input, toggle, del);
       render();
     };
 
-    row.append(input, checkbox, del);
+    row.appendChild(input);
+    row.appendChild(toggle);
+    row.appendChild(del);
+
     container.appendChild(row);
   });
+}
+
+// ===============================
+// ADD
+// ===============================
+function addPhrase() {
+  config.phrases.push({ text: "Nouvelle phrase", forced: false });
+  render();
 }
 
 // ===============================
@@ -74,7 +91,7 @@ async function save() {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": "Bearer " + token
+      Authorization: "Bearer " + token
     },
     body: JSON.stringify(config)
   });
