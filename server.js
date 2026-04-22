@@ -21,21 +21,24 @@ app.set("trust proxy", 1);
 // ANTI BRUTE FORCE PROGRESSIF
 // ===============================
 const failedAttempts = new Map();
-
 const MAX_ATTEMPTS = 10;
 
 function getIP(req) {
-  return (req.headers["x-forwarded-for"] || req.ip || "")
+  let ip = (req.headers["x-forwarded-for"] || req.ip || "")
     .split(",")[0]
     .trim();
+
+  if (ip === "::1") ip = "127.0.0.1";
+  if (ip.startsWith("::ffff:")) ip = ip.replace("::ffff:", "");
+
+  return ip;
 }
 
 function getBanDuration(level) {
-  // progression exponentielle
   const durations = [
-    15 * 60 * 1000,   // 15 min
-    60 * 60 * 1000,   // 1h
-    24 * 60 * 60 * 1000, // 24h
+    15 * 60 * 1000,        // 15 min
+    60 * 60 * 1000,        // 1h
+    24 * 60 * 60 * 1000,   // 24h
     7 * 24 * 60 * 60 * 1000 // 7 jours
   ];
 
@@ -73,57 +76,7 @@ function registerFail(ip) {
     data.count = 0;
     data.level++;
 
-    console.log(
-      "BANNED:",
-      ip,
-      "LEVEL:",
-      data.level,
-      "DURATION:",
-      duration / 1000 + "s"
-    );
-  }
-
-  failedAttempts.set(ip, data);
-}
-
-function registerSuccess(ip) {
-  // reset partiel (pas total pour garder historique)
-  const data = failedAttempts.get(ip);
-  if (data) {
-    data.count = 0;
-  }
-}
-
-const BAN_TIME = 15 * 60 * 1000; // 15 min
-
-function getIP(req) {
-  return (req.headers["x-forwarded-for"] || req.ip || "")
-    .split(",")[0]
-    .trim();
-}
-
-function checkBan(req, res, next) {
-  const ip = getIP(req);
-  const data = failedAttempts.get(ip);
-
-  if (data && data.banUntil && Date.now() < data.banUntil) {
-    return res.status(429).json({ error: "Too many attempts. Try later." });
-  }
-
-  next();
-}
-
-function registerFail(ip) {
-  let data = failedAttempts.get(ip) || { count: 0 };
-
-  data.count++;
-
-  console.log("FAIL:", ip, data.count);
-
-  if (data.count >= MAX_ATTEMPTS) {
-    data.banUntil = Date.now() + BAN_TIME;
-    data.count = 0;
-    console.log("BANNED:", ip);
+    console.log("BANNED:", ip, "LEVEL:", data.level);
   }
 
   failedAttempts.set(ip, data);
@@ -205,7 +158,7 @@ app.post("/api/login", checkBan, async (req, res) => {
 // ===============================
 const CONFIG_PATH = "./config.json";
 
-// PUBLIC
+// PUBLIC READ
 app.get("/api/config", (req, res) => {
   try {
     if (!fs.existsSync(CONFIG_PATH)) {
@@ -221,7 +174,7 @@ app.get("/api/config", (req, res) => {
   }
 });
 
-// PROTECTED
+// PROTECTED WRITE
 app.post("/api/config", auth, (req, res) => {
   try {
     const data = req.body;
