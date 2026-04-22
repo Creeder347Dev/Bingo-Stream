@@ -1,22 +1,59 @@
 console.log("SERVER FILE LOADED");
 console.log("LOADED FROM:", import.meta.url);
 
-import dotenv from "dotenv";
-dotenv.config({ path: "/var/www/Bingo-Stream/.env" });
+// Empêche double exécution (PM2 / import multiple)
+if (global.__SERVER_STARTED__) {
+  console.log("⛔ Serveur déjà lancé, on ignore");
+  process.exit(0);
+}
+global.__SERVER_STARTED__ = true;
+
+import 'dotenv/config';
 
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import pool from "./db.js";
+import pkg from "pg";
 import fs from "fs";
 import helmet from "helmet";
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+const { Pool } = pkg;
 
 // ===============================
-// SECURITY
+// CONFIG
 // ===============================
+const PORT = process.env.PORT || 3000;
+
+if (!process.env.DATABASE_URL) {
+  console.error("❌ DATABASE_URL manquant");
+  process.exit(1);
+}
+
+// ===============================
+// DB
+// ===============================
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL
+});
+
+async function waitForDB() {
+  while (true) {
+    try {
+      await pool.query("SELECT 1");
+      console.log("✅ PostgreSQL connecté");
+      return;
+    } catch (err) {
+      console.log("⏳ DB indisponible, retry...");
+      await new Promise(r => setTimeout(r, 2000));
+    }
+  }
+}
+
+// ===============================
+// APP
+// ===============================
+const app = express();
+
 app.use(helmet());
 app.use(express.json({ limit: "100kb" }));
 app.set("trust proxy", 1);
@@ -45,6 +82,7 @@ function getBanDuration(level) {
     24 * 60 * 60 * 1000,
     7 * 24 * 60 * 60 * 1000
   ];
+
   return durations[level] || durations[durations.length - 1];
 }
 
@@ -149,7 +187,7 @@ app.post("/api/login", checkBan, async (req, res) => {
 });
 
 // ===============================
-// CONFIG
+// CONFIG FILE
 // ===============================
 const CONFIG_PATH = "./config.json";
 
@@ -186,48 +224,14 @@ app.post("/api/config", auth, (req, res) => {
 });
 
 // ===============================
-// WAIT FOR DB (ROBUSTE)
-// ===============================
-async function waitForDB() {
-  let attempts = 0;
-
-  while (true) {
-    try {
-      attempts++;
-      console.log(`⏳ Tentative DB #${attempts}`);
-
-      await pool.query("SELECT 1");
-
-      console.log("✅ PostgreSQL connecté");
-      return;
-
-    } catch (err) {
-      console.log("❌ DB indisponible, nouvelle tentative dans 2s...");
-      await new Promise(r => setTimeout(r, 2000));
-    }
-  }
-}
-
-// ===============================
 // START SERVER
 // ===============================
-async function startServer() {
-  try {
-    await waitForDB();
+async function start() {
+  await waitForDB();
 
-    const server = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-
-    server.on("error", (err) => {
-      console.error("Erreur serveur:", err);
-      process.exit(1);
-    });
-
-  } catch (err) {
-    console.error("❌ Impossible de démarrer:", err);
-    process.exit(1);
-  }
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
 }
 
-startServer();
+start();
