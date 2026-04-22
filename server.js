@@ -1,13 +1,6 @@
 console.log("SERVER FILE LOADED");
 console.log("LOADED FROM:", import.meta.url);
 
-// Empêche double exécution (PM2 / import multiple)
-if (global.__SERVER_STARTED__) {
-  console.log("⛔ Serveur déjà lancé, on ignore");
-  process.exit(0);
-}
-global.__SERVER_STARTED__ = true;
-
 import 'dotenv/config';
 
 import express from "express";
@@ -20,30 +13,58 @@ import helmet from "helmet";
 const { Pool } = pkg;
 
 // ===============================
-// CONFIG
+// CHECK ENV
 // ===============================
-const PORT = process.env.PORT || 3000;
-
 if (!process.env.DATABASE_URL) {
   console.error("❌ DATABASE_URL manquant");
   process.exit(1);
 }
 
 // ===============================
+// PARSE DATABASE_URL (SAFE)
+// ===============================
+let dbConfig;
+
+try {
+  const url = new URL(process.env.DATABASE_URL.trim());
+
+  dbConfig = {
+    user: url.username,
+    password: String(url.password), // 🔥 force string
+    host: url.hostname,
+    port: Number(url.port) || 5432,
+    database: url.pathname.replace("/", ""),
+  };
+
+  console.log("🔍 DB CONFIG:", {
+    user: dbConfig.user,
+    passwordType: typeof dbConfig.password,
+    host: dbConfig.host,
+    port: dbConfig.port,
+    database: dbConfig.database,
+  });
+
+} catch (err) {
+  console.error("❌ DATABASE_URL invalide :", process.env.DATABASE_URL);
+  process.exit(1);
+}
+
+// ===============================
 // DB
 // ===============================
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL
-});
+const pool = new Pool(dbConfig);
 
 async function waitForDB() {
+  let attempt = 0;
+
   while (true) {
+    attempt++;
     try {
       await pool.query("SELECT 1");
       console.log("✅ PostgreSQL connecté");
       return;
-    } catch (err) {
-      console.log("⏳ DB indisponible, retry...");
+    } catch {
+      console.log(`⏳ DB indisponible (tentative ${attempt})`);
       await new Promise(r => setTimeout(r, 2000));
     }
   }
@@ -57,6 +78,8 @@ const app = express();
 app.use(helmet());
 app.use(express.json({ limit: "100kb" }));
 app.set("trust proxy", 1);
+
+const PORT = process.env.PORT || 3000;
 
 // ===============================
 // ANTI BRUTE FORCE
@@ -82,7 +105,6 @@ function getBanDuration(level) {
     24 * 60 * 60 * 1000,
     7 * 24 * 60 * 60 * 1000
   ];
-
   return durations[level] || durations[durations.length - 1];
 }
 
