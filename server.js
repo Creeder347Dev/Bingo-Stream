@@ -1,16 +1,18 @@
 console.log("SERVER FILE LOADED");
 console.log("LOADED FROM:", import.meta.url);
+
+import 'dotenv/config';
+
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import dotenv from "dotenv";
 import pool from "./db.js";
 import fs from "fs";
 import helmet from "helmet";
 
 const LOCK_FILE = "/tmp/bingo-server.lock";
 
-import 'dotenv/config';
+
 
 const app = express();
 
