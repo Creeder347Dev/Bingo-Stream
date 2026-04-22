@@ -1,6 +1,4 @@
-console.log("SERVER FILE LOADED");
-console.log("LOADED FROM:", import.meta.url);
-
+// ⚠️ DOIT ÊTRE EN PREMIÈRE LIGNE
 import 'dotenv/config';
 
 import express from "express";
@@ -10,15 +8,14 @@ import pool from "./db.js";
 import fs from "fs";
 import helmet from "helmet";
 
-const LOCK_FILE = "/tmp/bingo-server.lock";
+console.log("SERVER FILE LOADED");
+console.log("LOADED FROM:", import.meta.url);
 
-
-
+// ===============================
+// APP
+// ===============================
 const app = express();
 
-// ===============================
-// SECURITY
-// ===============================
 app.use(helmet());
 app.use(express.json({ limit: "100kb" }));
 app.set("trust proxy", 1);
@@ -66,23 +63,15 @@ function checkBan(req, res, next) {
 }
 
 function registerFail(ip) {
-  let data = failedAttempts.get(ip) || {
-    count: 0,
-    level: 0
-  };
+  let data = failedAttempts.get(ip) || { count: 0, level: 0 };
 
   data.count++;
 
-  console.log("FAIL:", ip, data.count);
-
   if (data.count >= MAX_ATTEMPTS) {
     const duration = getBanDuration(data.level);
-
     data.banUntil = Date.now() + duration;
     data.count = 0;
     data.level++;
-
-    console.log("BANNED:", ip, "LEVEL:", data.level);
   }
 
   failedAttempts.set(ip, data);
@@ -197,7 +186,7 @@ app.post("/api/config", auth, (req, res) => {
 });
 
 // ===============================
-// SERVER (PROTÉGÉ)
+// SERVER
 // ===============================
 const PORT = process.env.PORT || 3000;
 
@@ -207,10 +196,8 @@ const server = app.listen(PORT, () => {
 
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
-    console.error("❌ Port déjà utilisé → arrêt propre");
-    return; // important pour PM2
+    console.error("❌ Port déjà utilisé");
   } else {
     console.error(err);
-    return;
   }
 });
