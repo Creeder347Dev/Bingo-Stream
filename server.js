@@ -1,3 +1,19 @@
+import fs from "fs";
+
+const LOCK_FILE = "/tmp/bingo-server.lock";
+
+if (fs.existsSync(LOCK_FILE)) {
+  console.log("⚠️ Serveur déjà lancé → arrêt");
+  process.exit(0);
+}
+
+fs.writeFileSync(LOCK_FILE, process.pid.toString());
+
+process.on("exit", () => {
+  if (fs.existsSync(LOCK_FILE)) fs.unlinkSync(LOCK_FILE);
+});
+
+
 // ===============================
 // ANTI DOUBLE LOAD GLOBAL
 // ===============================
