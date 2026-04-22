@@ -94,7 +94,6 @@ function registerSuccess(ip) {
   }
 }
 
-const MAX_ATTEMPTS = 10;
 const BAN_TIME = 15 * 60 * 1000; // 15 min
 
 function getIP(req) {
