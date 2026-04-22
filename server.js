@@ -1,5 +1,6 @@
-// ⚠️ DOIT ÊTRE EN PREMIÈRE LIGNE
-import 'dotenv/config';
+// ⚠️ DOIT ÊTRE TOUT EN HAUT
+import dotenv from "dotenv";
+dotenv.config();
 
 import express from "express";
 import jwt from "jsonwebtoken";
