@@ -1,7 +1,8 @@
 console.log("SERVER FILE LOADED");
 console.log("LOADED FROM:", import.meta.url);
 
-import 'dotenv/config';
+import dotenv from "dotenv";
+dotenv.config({ path: "/var/www/Bingo-Stream/.env" });
 
 import express from "express";
 import jwt from "jsonwebtoken";
@@ -21,7 +22,7 @@ app.use(express.json({ limit: "100kb" }));
 app.set("trust proxy", 1);
 
 // ===============================
-// ANTI BRUTE FORCE PROGRESSIF
+// ANTI BRUTE FORCE
 // ===============================
 const failedAttempts = new Map();
 const MAX_ATTEMPTS = 10;
@@ -44,7 +45,6 @@ function getBanDuration(level) {
     24 * 60 * 60 * 1000,
     7 * 24 * 60 * 60 * 1000
   ];
-
   return durations[level] || durations[durations.length - 1];
 }
 
@@ -63,23 +63,15 @@ function checkBan(req, res, next) {
 }
 
 function registerFail(ip) {
-  let data = failedAttempts.get(ip) || {
-    count: 0,
-    level: 0
-  };
+  let data = failedAttempts.get(ip) || { count: 0, level: 0 };
 
   data.count++;
 
-  console.log("FAIL:", ip, data.count);
-
   if (data.count >= MAX_ATTEMPTS) {
     const duration = getBanDuration(data.level);
-
     data.banUntil = Date.now() + duration;
     data.count = 0;
     data.level++;
-
-    console.log("BANNED:", ip, "LEVEL:", data.level);
   }
 
   failedAttempts.set(ip, data);
@@ -194,21 +186,26 @@ app.post("/api/config", auth, (req, res) => {
 });
 
 // ===============================
-// WAIT FOR DB (RETRY)
+// WAIT FOR DB (ROBUSTE)
 // ===============================
-async function waitForDB(retries = 5) {
-  while (retries) {
+async function waitForDB() {
+  let attempts = 0;
+
+  while (true) {
     try {
+      attempts++;
+      console.log(`⏳ Tentative DB #${attempts}`);
+
       await pool.query("SELECT 1");
+
       console.log("✅ PostgreSQL connecté");
       return;
+
     } catch (err) {
-      console.log("⏳ DB indisponible, retry...");
-      retries--;
+      console.log("❌ DB indisponible, nouvelle tentative dans 2s...");
       await new Promise(r => setTimeout(r, 2000));
     }
   }
-  throw new Error("DB unreachable");
 }
 
 // ===============================
@@ -223,13 +220,8 @@ async function startServer() {
     });
 
     server.on("error", (err) => {
-      if (err.code === "EADDRINUSE") {
-        console.error("❌ Port déjà utilisé → arrêt");
-        process.exit(1);
-      } else {
-        console.error(err);
-        process.exit(1);
-      }
+      console.error("Erreur serveur:", err);
+      process.exit(1);
     });
 
   } catch (err) {
