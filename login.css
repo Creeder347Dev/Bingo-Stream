@@ -4,12 +4,12 @@ body {
   display: flex;
   justify-content: center;
   align-items: center;
-  background: #0f172a;
+  background: #0f172a; /* fond editor */
   font-family: Arial;
 }
 
 .login-box {
-  background: #1e293b;
+  background: #1e293b; /* card editor */
   padding: 30px;
   border-radius: 12px;
   width: 300px;
@@ -27,18 +27,28 @@ input {
   padding: 10px;
   border-radius: 6px;
   border: none;
+  background: #0f172a; /* même que fond */
+  color: white;
+}
+
+input::placeholder {
+  color: #94a3b8;
 }
 
 button {
   padding: 10px;
-  background: #00ffcc;
+  background: #00ffcc; /* accent editor */
   border: none;
   border-radius: 6px;
   font-weight: bold;
   cursor: pointer;
 }
 
+button:hover {
+  background: #00ddb0; /* hover editor */
+}
+
 #error {
-  color: red;
+  color: #ef4444;
   text-align: center;
 }
