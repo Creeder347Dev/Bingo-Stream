@@ -18,9 +18,81 @@ app.use(express.json({ limit: "100kb" }));
 app.set("trust proxy", 1);
 
 // ===============================
-// ANTI BRUTE FORCE (BAN IP)
+// ANTI BRUTE FORCE PROGRESSIF
 // ===============================
 const failedAttempts = new Map();
+
+const MAX_ATTEMPTS = 10;
+
+function getIP(req) {
+  return (req.headers["x-forwarded-for"] || req.ip || "")
+    .split(",")[0]
+    .trim();
+}
+
+function getBanDuration(level) {
+  // progression exponentielle
+  const durations = [
+    15 * 60 * 1000,   // 15 min
+    60 * 60 * 1000,   // 1h
+    24 * 60 * 60 * 1000, // 24h
+    7 * 24 * 60 * 60 * 1000 // 7 jours
+  ];
+
+  return durations[level] || durations[durations.length - 1];
+}
+
+function checkBan(req, res, next) {
+  const ip = getIP(req);
+  const data = failedAttempts.get(ip);
+
+  if (data && data.banUntil && Date.now() < data.banUntil) {
+    return res.status(429).json({
+      error: "Too many attempts",
+      retryIn: Math.ceil((data.banUntil - Date.now()) / 1000)
+    });
+  }
+
+  next();
+}
+
+function registerFail(ip) {
+  let data = failedAttempts.get(ip) || {
+    count: 0,
+    level: 0
+  };
+
+  data.count++;
+
+  console.log("FAIL:", ip, data.count);
+
+  if (data.count >= MAX_ATTEMPTS) {
+    const duration = getBanDuration(data.level);
+
+    data.banUntil = Date.now() + duration;
+    data.count = 0;
+    data.level++;
+
+    console.log(
+      "BANNED:",
+      ip,
+      "LEVEL:",
+      data.level,
+      "DURATION:",
+      duration / 1000 + "s"
+    );
+  }
+
+  failedAttempts.set(ip, data);
+}
+
+function registerSuccess(ip) {
+  // reset partiel (pas total pour garder historique)
+  const data = failedAttempts.get(ip);
+  if (data) {
+    data.count = 0;
+  }
+}
 
 const MAX_ATTEMPTS = 10;
 const BAN_TIME = 15 * 60 * 1000; // 15 min
