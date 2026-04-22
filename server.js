@@ -11,6 +11,7 @@ import helmet from "helmet";
 
 console.log("SERVER FILE LOADED");
 console.log("LOADED FROM:", import.meta.url);
+console.log("PID:", process.pid);
 
 // ===============================
 // APP
