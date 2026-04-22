@@ -204,9 +204,9 @@ const server = app.listen(PORT, () => {
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
     console.error("❌ Port déjà utilisé → arrêt propre");
-    process.exit(0); // important pour PM2
+    return; // important pour PM2
   } else {
     console.error(err);
-    process.exit(1);
+    return;
   }
 });
