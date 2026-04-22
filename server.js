@@ -1,4 +1,10 @@
+import express from "express";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcrypt";
+import dotenv from "dotenv";
+import pool from "./db.js";
 import fs from "fs";
+import helmet from "helmet";
 
 const LOCK_FILE = "/tmp/bingo-server.lock";
 
@@ -23,13 +29,7 @@ if (global.__SERVER_LOADED__) {
 }
 global.__SERVER_LOADED__ = true;
 
-import express from "express";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import dotenv from "dotenv";
-import pool from "./db.js";
-import fs from "fs";
-import helmet from "helmet";
+
 
 dotenv.config();
 
