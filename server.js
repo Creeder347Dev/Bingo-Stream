@@ -1,3 +1,12 @@
+// ===============================
+// ANTI DOUBLE LOAD GLOBAL
+// ===============================
+if (global.__SERVER_LOADED__) {
+  console.error("⛔ DOUBLE LOAD BLOQUÉ");
+  process.exit(1);
+}
+global.__SERVER_LOADED__ = true;
+
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
@@ -36,10 +45,10 @@ function getIP(req) {
 
 function getBanDuration(level) {
   const durations = [
-    15 * 60 * 1000,        // 15 min
-    60 * 60 * 1000,        // 1h
-    24 * 60 * 60 * 1000,   // 24h
-    7 * 24 * 60 * 60 * 1000 // 7 jours
+    15 * 60 * 1000,
+    60 * 60 * 1000,
+    24 * 60 * 60 * 1000,
+    7 * 24 * 60 * 60 * 1000
   ];
 
   return durations[level] || durations[durations.length - 1];
@@ -158,7 +167,6 @@ app.post("/api/login", checkBan, async (req, res) => {
 // ===============================
 const CONFIG_PATH = "./config.json";
 
-// PUBLIC READ
 app.get("/api/config", (req, res) => {
   try {
     if (!fs.existsSync(CONFIG_PATH)) {
@@ -174,7 +182,6 @@ app.get("/api/config", (req, res) => {
   }
 });
 
-// PROTECTED WRITE
 app.post("/api/config", auth, (req, res) => {
   try {
     const data = req.body;
@@ -193,10 +200,14 @@ app.post("/api/config", auth, (req, res) => {
 });
 
 // ===============================
-// SERVER
+// SERVER (PROTÉGÉ)
 // ===============================
 const PORT = 3000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+if (!global.__SERVER_STARTED__) {
+  global.__SERVER_STARTED__ = true;
+
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+  });
+}
