@@ -1,4 +1,5 @@
 console.log("SERVER FILE LOADED");
+console.log("LOADED FROM:", import.meta.url);
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
