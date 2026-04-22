@@ -202,12 +202,18 @@ app.post("/api/config", auth, (req, res) => {
 // ===============================
 // SERVER (PROTÉGÉ)
 // ===============================
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-if (!global.__SERVER_STARTED__) {
-  global.__SERVER_STARTED__ = true;
+const server = app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
 
-  app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-  });
-}
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error("❌ Port déjà utilisé → arrêt propre");
+    process.exit(0); // important pour PM2
+  } else {
+    console.error(err);
+    process.exit(1);
+  }
+});
