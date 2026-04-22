@@ -10,7 +10,7 @@ import helmet from "helmet";
 
 const LOCK_FILE = "/tmp/bingo-server.lock";
 
-dotenv.config();
+import 'dotenv/config';
 
 const app = express();
 
