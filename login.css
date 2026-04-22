@@ -27,7 +27,7 @@ input {
   padding: 10px;
   border-radius: 6px;
   border: none;
-  background: #0f172a; /* même que fond */
+  background: #111; /* même que fond */
   color: white;
 }
 
