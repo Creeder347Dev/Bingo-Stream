@@ -6,31 +6,6 @@ import pool from "./db.js";
 import fs from "fs";
 import helmet from "helmet";
 
-const LOCK_FILE = "/tmp/bingo-server.lock";
-
-if (fs.existsSync(LOCK_FILE)) {
-  console.log("⚠️ Serveur déjà lancé → arrêt");
-  process.exit(0);
-}
-
-fs.writeFileSync(LOCK_FILE, process.pid.toString());
-
-process.on("exit", () => {
-  if (fs.existsSync(LOCK_FILE)) fs.unlinkSync(LOCK_FILE);
-});
-
-
-// ===============================
-// ANTI DOUBLE LOAD GLOBAL
-// ===============================
-if (global.__SERVER_LOADED__) {
-  console.error("⛔ DOUBLE LOAD BLOQUÉ");
-  process.exit(1);
-}
-global.__SERVER_LOADED__ = true;
-
-
-
 dotenv.config();
 
 const app = express();
@@ -216,7 +191,7 @@ app.post("/api/config", auth, (req, res) => {
 });
 
 // ===============================
-// SERVER (PROTÉGÉ)
+// SERVER
 // ===============================
 const PORT = process.env.PORT || 3000;
 
@@ -226,10 +201,9 @@ const server = app.listen(PORT, () => {
 
 server.on("error", (err) => {
   if (err.code === "EADDRINUSE") {
-    console.error("❌ Port déjà utilisé → arrêt propre");
-    process.exit(0); // important pour PM2
+    console.error("❌ Port déjà utilisé (instance déjà active)");
+    // ❗ NE PAS quitter → sinon boucle PM2
   } else {
     console.error(err);
-    process.exit(1);
   }
 });
