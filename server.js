@@ -10,6 +10,7 @@ dotenv.config();
 
 console.log("SERVER FILE LOADED");
 console.log("LOADED FROM:", import.meta.url);
+console.log("PID:", process.pid);
 
 const app = express();
 const PORT = process.env.PORT || 3000;
