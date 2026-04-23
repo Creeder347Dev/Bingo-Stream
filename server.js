@@ -1,14 +1,17 @@
+console.log("SERVER FILE LOADED");
+console.log("LOADED FROM:", import.meta.url);
+
+import 'dotenv/config';
+
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import dotenv from "dotenv";
 import pool from "./db.js";
 import fs from "fs";
 import helmet from "helmet";
 
-dotenv.config();
-
 const app = express();
+const PORT = process.env.PORT || 3000;
 
 // ===============================
 // SECURITY
@@ -191,19 +194,48 @@ app.post("/api/config", auth, (req, res) => {
 });
 
 // ===============================
-// SERVER
+// WAIT FOR DB (RETRY)
 // ===============================
-const PORT = process.env.PORT || 3000;
-
-const server = app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
-
-server.on("error", (err) => {
-  if (err.code === "EADDRINUSE") {
-    console.error("❌ Port déjà utilisé (instance déjà active)");
-    // ❗ NE PAS quitter → sinon boucle PM2
-  } else {
-    console.error(err);
+async function waitForDB(retries = 5) {
+  while (retries) {
+    try {
+      await pool.query("SELECT 1");
+      console.log("✅ PostgreSQL connecté");
+      return;
+    } catch (err) {
+      console.log("⏳ DB indisponible, retry...");
+      retries--;
+      await new Promise(r => setTimeout(r, 2000));
+    }
   }
-});
+  throw new Error("DB unreachable");
+}
+
+// ===============================
+// START SERVER
+// ===============================
+async function startServer() {
+  try {
+    await waitForDB();
+
+    const server = app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+
+    server.on("error", (err) => {
+      if (err.code === "EADDRINUSE") {
+        console.error("❌ Port déjà utilisé → arrêt");
+        process.exit(1);
+      } else {
+        console.error(err);
+        process.exit(1);
+      }
+    });
+
+  } catch (err) {
+    console.error("❌ Impossible de démarrer:", err);
+    process.exit(1);
+  }
+}
+
+startServer();
