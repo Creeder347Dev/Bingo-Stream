@@ -1,0 +1,54 @@
+body {
+  margin: 0;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: #111; /* fond editor */
+  font-family: Arial;
+}
+
+.login-box {
+  background: #1a1a1a; /* card editor */
+  padding: 30px;
+  border-radius: 12px;
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+h2 {
+  text-align: center;
+  color: white;
+}
+
+input {
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  background: #111; /* même que fond */
+  color: white;
+}
+
+input::placeholder {
+  color: white;
+}
+
+button {
+  padding: 10px;
+  background: #00ffcc; /* accent editor */
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #00ddb0; /* hover editor */
+}
+
+#error {
+  color: #ef4444;
+  text-align: center;
+}
