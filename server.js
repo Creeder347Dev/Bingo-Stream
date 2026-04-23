@@ -4,40 +4,144 @@ import bcrypt from "bcrypt";
 import dotenv from "dotenv";
 import pool from "./db.js";
 import fs from "fs";
+import helmet from "helmet";
+
+const LOCK_FILE = "/tmp/bingo-server.lock";
+
+if (fs.existsSync(LOCK_FILE)) {
+  console.log("⚠️ Serveur déjà lancé → arrêt");
+  process.exit(0);
+}
+
+fs.writeFileSync(LOCK_FILE, process.pid.toString());
+
+process.on("exit", () => {
+  if (fs.existsSync(LOCK_FILE)) fs.unlinkSync(LOCK_FILE);
+});
+
+
+// ===============================
+// ANTI DOUBLE LOAD GLOBAL
+// ===============================
+if (global.__SERVER_LOADED__) {
+  console.error("⛔ DOUBLE LOAD BLOQUÉ");
+  process.exit(1);
+}
+global.__SERVER_LOADED__ = true;
+
+
 
 dotenv.config();
 
 const app = express();
-app.use(express.json());
-
-const CONFIG_PATH = "./config.json";
-
 
 // ===============================
-// AUTH MIDDLEWARE
+// SECURITY
+// ===============================
+app.use(helmet());
+app.use(express.json({ limit: "100kb" }));
+app.set("trust proxy", 1);
+
+// ===============================
+// ANTI BRUTE FORCE PROGRESSIF
+// ===============================
+const failedAttempts = new Map();
+const MAX_ATTEMPTS = 10;
+
+function getIP(req) {
+  let ip = (req.headers["x-forwarded-for"] || req.ip || "")
+    .split(",")[0]
+    .trim();
+
+  if (ip === "::1") ip = "127.0.0.1";
+  if (ip.startsWith("::ffff:")) ip = ip.replace("::ffff:", "");
+
+  return ip;
+}
+
+function getBanDuration(level) {
+  const durations = [
+    15 * 60 * 1000,
+    60 * 60 * 1000,
+    24 * 60 * 60 * 1000,
+    7 * 24 * 60 * 60 * 1000
+  ];
+
+  return durations[level] || durations[durations.length - 1];
+}
+
+function checkBan(req, res, next) {
+  const ip = getIP(req);
+  const data = failedAttempts.get(ip);
+
+  if (data && data.banUntil && Date.now() < data.banUntil) {
+    return res.status(429).json({
+      error: "Too many attempts",
+      retryIn: Math.ceil((data.banUntil - Date.now()) / 1000)
+    });
+  }
+
+  next();
+}
+
+function registerFail(ip) {
+  let data = failedAttempts.get(ip) || {
+    count: 0,
+    level: 0
+  };
+
+  data.count++;
+
+  console.log("FAIL:", ip, data.count);
+
+  if (data.count >= MAX_ATTEMPTS) {
+    const duration = getBanDuration(data.level);
+
+    data.banUntil = Date.now() + duration;
+    data.count = 0;
+    data.level++;
+
+    console.log("BANNED:", ip, "LEVEL:", data.level);
+  }
+
+  failedAttempts.set(ip, data);
+}
+
+function registerSuccess(ip) {
+  failedAttempts.delete(ip);
+}
+
+// ===============================
+// AUTH
 // ===============================
 function auth(req, res, next) {
   const header = req.headers.authorization;
-  if (!header) return res.sendStatus(401);
+
+  if (!header || !header.startsWith("Bearer ")) {
+    return res.sendStatus(401);
+  }
 
   const token = header.split(" ")[1];
 
   try {
-    const user = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = user;
+    req.user = jwt.verify(token, process.env.JWT_SECRET);
     next();
   } catch {
     res.sendStatus(403);
   }
 }
 
-
 // ===============================
-// LOGIN ADMIN
+// LOGIN
 // ===============================
-app.post("/api/login", async (req, res) => {
+app.post("/api/login", checkBan, async (req, res) => {
   try {
+    const ip = getIP(req);
     const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: "Invalid request" });
+    }
 
     const result = await pool.query(
       "SELECT * FROM users WHERE username = $1",
@@ -45,10 +149,20 @@ app.post("/api/login", async (req, res) => {
     );
 
     const user = result.rows[0];
-    if (!user) return res.status(401).json({ error: "User not found" });
+
+    if (!user) {
+      registerFail(ip);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(401).json({ error: "Wrong password" });
+
+    if (!match) {
+      registerFail(ip);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    registerSuccess(ip);
 
     const token = jwt.sign(
       { id: user.id, role: user.role },
@@ -64,12 +178,11 @@ app.post("/api/login", async (req, res) => {
   }
 });
 
-
 // ===============================
 // CONFIG
 // ===============================
+const CONFIG_PATH = "./config.json";
 
-// ✅ PUBLIC (lecture)
 app.get("/api/config", (req, res) => {
   try {
     if (!fs.existsSync(CONFIG_PATH)) {
@@ -85,23 +198,38 @@ app.get("/api/config", (req, res) => {
   }
 });
 
-// 🔒 PROTÉGÉ (écriture)
 app.post("/api/config", auth, (req, res) => {
   try {
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(req.body, null, 2));
+    const data = req.body;
+
+    if (!data || !Array.isArray(data.phrases)) {
+      return res.status(400).json({ error: "Invalid config" });
+    }
+
+    fs.writeFileSync(CONFIG_PATH, JSON.stringify(data, null, 2));
     res.json({ success: true });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Erreur sauvegarde" });
   }
 });
 
-
 // ===============================
-// SERVER
+// SERVER (PROTÉGÉ)
 // ===============================
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
+});
+
+server.on("error", (err) => {
+  if (err.code === "EADDRINUSE") {
+    console.error("❌ Port déjà utilisé → arrêt propre");
+    process.exit(0); // important pour PM2
+  } else {
+    console.error(err);
+    process.exit(1);
+  }
 });
