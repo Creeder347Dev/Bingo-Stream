@@ -8,233 +8,228 @@ import helmet from "helmet";
 
 dotenv.config();
 
-console.log("SERVER FILE LOADED");
-console.log("LOADED FROM:", import.meta.url);
-console.log("PID:", process.pid);
-
-const app = express();
-const PORT = process.env.PORT || 3000;
-
 // ===============================
-// SECURITY
+// 🔒 ANTI DOUBLE EXECUTION (FIX FINAL)
 // ===============================
-app.use(helmet());
-app.use(express.json({ limit: "100kb" }));
-app.set("trust proxy", 1);
+if (globalThis.__SERVER_STARTED__) {
+  console.log("⛔ Server déjà initialisé → skip");
+} else {
+  globalThis.__SERVER_STARTED__ = true;
 
-// ===============================
-// ANTI BRUTE FORCE
-// ===============================
-const failedAttempts = new Map();
-const MAX_ATTEMPTS = 10;
+  console.log("SERVER FILE LOADED");
+  console.log("LOADED FROM:", import.meta.url);
+  console.log("PID:", process.pid);
 
-function getIP(req) {
-  let ip = (req.headers["x-forwarded-for"] || req.ip || "")
-    .split(",")[0]
-    .trim();
+  const app = express();
+  const PORT = process.env.PORT || 3000;
 
-  if (ip === "::1") ip = "127.0.0.1";
-  if (ip.startsWith("::ffff:")) ip = ip.replace("::ffff:", "");
+  // ===============================
+  // SECURITY
+  // ===============================
+  app.use(helmet());
+  app.use(express.json({ limit: "100kb" }));
+  app.set("trust proxy", 1);
 
-  return ip;
-}
+  // ===============================
+  // ANTI BRUTE FORCE
+  // ===============================
+  const failedAttempts = new Map();
+  const MAX_ATTEMPTS = 10;
 
-function getBanDuration(level) {
-  const durations = [
-    15 * 60 * 1000,
-    60 * 60 * 1000,
-    24 * 60 * 60 * 1000,
-    7 * 24 * 60 * 60 * 1000
-  ];
-  return durations[level] || durations[durations.length - 1];
-}
+  function getIP(req) {
+    let ip = (req.headers["x-forwarded-for"] || req.ip || "")
+      .split(",")[0]
+      .trim();
 
-function checkBan(req, res, next) {
-  const ip = getIP(req);
-  const data = failedAttempts.get(ip);
+    if (ip === "::1") ip = "127.0.0.1";
+    if (ip.startsWith("::ffff:")) ip = ip.replace("::ffff:", "");
 
-  if (data && data.banUntil && Date.now() < data.banUntil) {
-    return res.status(429).json({
-      error: "Too many attempts",
-      retryIn: Math.ceil((data.banUntil - Date.now()) / 1000)
-    });
+    return ip;
   }
 
-  next();
-}
-
-function registerFail(ip) {
-  let data = failedAttempts.get(ip) || { count: 0, level: 0 };
-
-  data.count++;
-
-  if (data.count >= MAX_ATTEMPTS) {
-    const duration = getBanDuration(data.level);
-    data.banUntil = Date.now() + duration;
-    data.count = 0;
-    data.level++;
+  function getBanDuration(level) {
+    const durations = [
+      15 * 60 * 1000,
+      60 * 60 * 1000,
+      24 * 60 * 60 * 1000,
+      7 * 24 * 60 * 60 * 1000
+    ];
+    return durations[level] || durations[durations.length - 1];
   }
 
-  failedAttempts.set(ip, data);
-}
-
-function registerSuccess(ip) {
-  failedAttempts.delete(ip);
-}
-
-// ===============================
-// AUTH
-// ===============================
-function auth(req, res, next) {
-  const header = req.headers.authorization;
-
-  if (!header || !header.startsWith("Bearer ")) {
-    return res.sendStatus(401);
-  }
-
-  const token = header.split(" ")[1];
-
-  try {
-    req.user = jwt.verify(token, process.env.JWT_SECRET);
-    next();
-  } catch {
-    res.sendStatus(403);
-  }
-}
-
-// ===============================
-// LOGIN
-// ===============================
-app.post("/api/login", checkBan, async (req, res) => {
-  try {
+  function checkBan(req, res, next) {
     const ip = getIP(req);
-    const { username, password } = req.body;
+    const data = failedAttempts.get(ip);
 
-    if (!username || !password) {
-      return res.status(400).json({ error: "Invalid request" });
+    if (data && data.banUntil && Date.now() < data.banUntil) {
+      return res.status(429).json({
+        error: "Too many attempts",
+        retryIn: Math.ceil((data.banUntil - Date.now()) / 1000)
+      });
     }
 
-    const result = await pool.query(
-      "SELECT * FROM users WHERE username = $1",
-      [username]
-    );
-
-    const user = result.rows[0];
-
-    if (!user) {
-      registerFail(ip);
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    const match = await bcrypt.compare(password, user.password);
-
-    if (!match) {
-      registerFail(ip);
-      return res.status(401).json({ error: "Invalid credentials" });
-    }
-
-    registerSuccess(ip);
-
-    const token = jwt.sign(
-      { id: user.id, role: user.role },
-      process.env.JWT_SECRET,
-      { expiresIn: "12h" }
-    );
-
-    res.json({ token });
-
-  } catch (err) {
-    console.error("Login error:", err);
-    res.sendStatus(500);
+    next();
   }
-});
 
-// ===============================
-// CONFIG
-// ===============================
-const CONFIG_PATH = "./config.json";
+  function registerFail(ip) {
+    let data = failedAttempts.get(ip) || { count: 0, level: 0 };
 
-app.get("/api/config", (req, res) => {
-  try {
-    if (!fs.existsSync(CONFIG_PATH)) {
-      return res.json({ phrases: [] });
+    data.count++;
+
+    if (data.count >= MAX_ATTEMPTS) {
+      const duration = getBanDuration(data.level);
+      data.banUntil = Date.now() + duration;
+      data.count = 0;
+      data.level++;
     }
 
-    const data = fs.readFileSync(CONFIG_PATH, "utf-8");
-    res.json(JSON.parse(data));
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erreur lecture config" });
+    failedAttempts.set(ip, data);
   }
-});
 
-app.post("/api/config", auth, (req, res) => {
-  try {
-    const data = req.body;
+  function registerSuccess(ip) {
+    failedAttempts.delete(ip);
+  }
 
-    if (!data || !Array.isArray(data.phrases)) {
-      return res.status(400).json({ error: "Invalid config" });
+  // ===============================
+  // AUTH
+  // ===============================
+  function auth(req, res, next) {
+    const header = req.headers.authorization;
+
+    if (!header || !header.startsWith("Bearer ")) {
+      return res.sendStatus(401);
     }
 
-    fs.writeFileSync(CONFIG_PATH, JSON.stringify(data, null, 2));
-    res.json({ success: true });
+    const token = header.split(" ")[1];
 
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Erreur sauvegarde" });
-  }
-});
-
-// ===============================
-// DB CHECK
-// ===============================
-async function waitForDB(retries = 10, delay = 2000) {
-  for (let i = 0; i < retries; i++) {
     try {
-      await pool.query("SELECT 1");
-      console.log("✅ PostgreSQL connecté");
-      return;
+      req.user = jwt.verify(token, process.env.JWT_SECRET);
+      next();
     } catch {
-      console.log("⏳ DB indisponible, retry...");
-      await new Promise(r => setTimeout(r, delay));
+      res.sendStatus(403);
     }
   }
-  throw new Error("DB unreachable");
-}
 
-// ===============================
-// SERVER START (ANTI DOUBLE)
-// ===============================
-let serverInstance = null;
+  // ===============================
+  // LOGIN
+  // ===============================
+  app.post("/api/login", checkBan, async (req, res) => {
+    try {
+      const ip = getIP(req);
+      const { username, password } = req.body;
 
-async function startServer() {
-  if (serverInstance) {
-    console.log("⛔ Serveur déjà démarré → ignoré");
-    return;
-  }
-
-  try {
-    await waitForDB();
-
-    serverInstance = app.listen(PORT, () => {
-      console.log(`🚀 Server running on port ${PORT}`);
-    });
-
-    serverInstance.on("error", (err) => {
-      if (err.code === "EADDRINUSE") {
-        console.error("❌ Port déjà utilisé");
-      } else {
-        console.error(err);
+      if (!username || !password) {
+        return res.status(400).json({ error: "Invalid request" });
       }
-    });
 
-  } catch (err) {
-    console.error("❌ Impossible de démarrer:", err);
+      const result = await pool.query(
+        "SELECT * FROM users WHERE username = $1",
+        [username]
+      );
+
+      const user = result.rows[0];
+
+      if (!user) {
+        registerFail(ip);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      const match = await bcrypt.compare(password, user.password);
+
+      if (!match) {
+        registerFail(ip);
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      registerSuccess(ip);
+
+      const token = jwt.sign(
+        { id: user.id, role: user.role },
+        process.env.JWT_SECRET,
+        { expiresIn: "12h" }
+      );
+
+      res.json({ token });
+
+    } catch (err) {
+      console.error("Login error:", err);
+      res.sendStatus(500);
+    }
+  });
+
+  // ===============================
+  // CONFIG
+  // ===============================
+  const CONFIG_PATH = "./config.json";
+
+  app.get("/api/config", (req, res) => {
+    try {
+      if (!fs.existsSync(CONFIG_PATH)) {
+        return res.json({ phrases: [] });
+      }
+
+      const data = fs.readFileSync(CONFIG_PATH, "utf-8");
+      res.json(JSON.parse(data));
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Erreur lecture config" });
+    }
+  });
+
+  app.post("/api/config", auth, (req, res) => {
+    try {
+      const data = req.body;
+
+      if (!data || !Array.isArray(data.phrases)) {
+        return res.status(400).json({ error: "Invalid config" });
+      }
+
+      fs.writeFileSync(CONFIG_PATH, JSON.stringify(data, null, 2));
+      res.json({ success: true });
+
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: "Erreur sauvegarde" });
+    }
+  });
+
+  // ===============================
+  // DB CHECK
+  // ===============================
+  async function waitForDB(retries = 10, delay = 2000) {
+    for (let i = 0; i < retries; i++) {
+      try {
+        await pool.query("SELECT 1");
+        console.log("✅ PostgreSQL connecté");
+        return;
+      } catch {
+        console.log("⏳ DB indisponible, retry...");
+        await new Promise(r => setTimeout(r, delay));
+      }
+    }
+    throw new Error("DB unreachable");
   }
-}
 
-// ===============================
-// START
-// ===============================
-startServer();
+  // ===============================
+  // START SERVER (safe)
+  // ===============================
+  let serverInstance = null;
+
+  async function startServer() {
+    if (serverInstance) return;
+
+    try {
+      await waitForDB();
+
+      serverInstance = app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+      });
+
+    } catch (err) {
+      console.error("❌ Impossible de démarrer:", err);
+    }
+  }
+
+  startServer();
+}
