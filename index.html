@@ -11,13 +11,14 @@
   <h1>Bingo 🎯</h1>
 
   <div class="container">
-    <!-- ID corrigé pour la capture -->
-    <div id="capture-area" class="grid"></div>
+    <!-- Zone capturée -->
+    <div id="capture-area">
+      <div id="grid" class="grid"></div>
+    </div>
   </div>
 
   <div class="actions">
     <button onclick="resetGrid()">🔄 Nouvelle grille</button>
-    <!-- Fonction corrigée -->
     <button onclick="captureGrid()">📸 Copier le bingo</button>
   </div>
 </div>
@@ -31,13 +32,13 @@
   </div>
 </div>
 
-<!-- html2canvas OBLIGATOIRE -->
+<!-- html2canvas -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
-<!-- ton script principal -->
+<!-- ton script -->
 <script src="script.js"></script>
 
-<!-- script de capture -->
+<!-- capture -->
 <script src="capture.js"></script>
 
 </body>
