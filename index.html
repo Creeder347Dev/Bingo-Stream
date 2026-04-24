@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<title>Bingo</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Bingo</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
@@ -11,12 +11,14 @@
   <h1>Bingo 🎯</h1>
 
   <div class="container">
-    <div id="grid" class="grid"></div>
+    <!-- ID corrigé pour la capture -->
+    <div id="capture-area" class="grid"></div>
   </div>
 
   <div class="actions">
     <button onclick="resetGrid()">🔄 Nouvelle grille</button>
-    <button onclick="copyGrid()">📋 Copier la grille</button>
+    <!-- Fonction corrigée -->
+    <button onclick="captureGrid()">📸 Copier le bingo</button>
   </div>
 </div>
 
@@ -29,6 +31,14 @@
   </div>
 </div>
 
+<!-- html2canvas OBLIGATOIRE -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<!-- ton script principal -->
 <script src="script.js"></script>
+
+<!-- script de capture -->
+<script src="capture.js"></script>
+
 </body>
 </html>
